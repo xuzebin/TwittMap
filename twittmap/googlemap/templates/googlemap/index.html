@@ -1,32 +1,122 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
     <style>
-       #map {
-         height: 800px;
-         width: 100%;
-       }
+      #map {
+        height: 100%;
+      }
+  	  html, body {
+    		height: 100%;
+    		margin: 0;
+    		padding: 0;
+  	  }
+      #coords, #twitts_count {
+        background-color: rgba(1, 1, 1, 0.1);
+        color: rgb(255, 255, 255);
+        font-size: 20px;
+      }
+
     </style>
   </head>
   <body>
-    <h3>My Google Maps Demo</h3>
+    <h3>Twitt Map</h3>
     <div id="map"></div>
+    <div id="coords"></div>
+    <div id="twitts_count"></div>
     <script>
+      var map;
+      var twittCount = 0
+      var markers = [];
+      // Add a marker clusterer to manage the markers.
+
       function initMap() {
-        var uluru = {lat: -25.363, lng: 131.044};
-        var map = new google.maps.Map(document.getElementById('map'), {
-          zoom: 4,
-          center: uluru
+        map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 2,
+          center: new google.maps.LatLng(2.8,-187.3),
         });
-        var marker = new google.maps.Marker({
-          position: uluru,
-          map: map
+        var opt = { minZoom: 2 };
+        map.setOptions(opt);
+
+        var twittsCountDiv = document.getElementById('twitts_count');
+        map.controls[google.maps.ControlPosition.TOP_CENTER].push(twittsCountDiv);
+
+        // Add a marker clusterer to manage the markers.
+        var markerCluster = new MarkerClusterer(map, markers,
+         {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
+
+        (function worker() {
+          $.ajax({
+            url: '/ajax/update_tweets/', 
+            success: function(data) {
+              // $('.result').html(data);
+              // console.log("ajax response:");
+              twittCount += data.length
+              var locs = data;
+              for (var i = 0; i < locs.length; i++) {
+                var coords = locs[i]["location"];
+                var latLng = new google.maps.LatLng(coords[1],coords[0]);
+                var marker = new google.maps.Marker({
+                  position: latLng,
+                  map: map,
+                  draggable: true,
+                  animation: google.maps.Animation.DROP,
+
+                });
+                attachMessage(marker, locs[i]);
+                markers.push(marker);
+              }
+              markerCluster = new MarkerClusterer(map, markers,
+                {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
+            },
+            complete: function() {
+              // Schedule the next request when the current one's complete
+              twittsCountDiv.textContent = 'tweets: ' + twittCount;
+              if (twittCount < 1000) {//we allow at most 1000 tweets to be displayed on map
+                setTimeout(worker, 2000);
+              } else {
+                // Stop tweets streaming in server
+                stopStreamingTweets();
+              }              
+            }
+          });
+        })();
+
+        
+        var coordsDiv = document.getElementById('coords');
+           map.controls[google.maps.ControlPosition.LEFT_CENTER].push(coordsDiv);
+           map.addListener('mousemove', function(event) {
+             coordsDiv.textContent =
+              'lat: ' + Math.round(event.latLng.lat()) + ', ' +
+              'lng: ' + Math.round(event.latLng.lng());
         });
+
+      }
+      function attachMessage(marker, message) {
+          contentStr = '<div>' + '<p><b>' + message["name"] + '</b>' + '<div>' + message["time"] + '</div>'
+          + '<p>' + message["text"] + '</p>' + '</div>';
+          var infowindow = new google.maps.InfoWindow({
+            content: contentStr,
+            maxWidth: 200
+          });
+          marker.addListener('click', function() {
+            infowindow.open(marker.get('map'), marker);
+          });
+      }
+
+      function stopStreamingTweets() {
+        $.ajax({
+            url: '/ajax/stop_tweets/', 
+          });
       }
     </script>
-    <script async defer
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyADVvnA5fYL4ecja-sl3JC0JraDFaU2iRE&callback=initMap">
+    <script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js">
     </script>
+    <script async defer
+   	  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyADVvnA5fYL4ecja-sl3JC0JraDFaU2iRE&callback=initMap">
+    </script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
   </body>
 </html>
 

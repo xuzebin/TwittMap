@@ -3,7 +3,7 @@
 import time
 from getpass import getpass
 from textwrap import TextWrapper
-
+from datetime import datetime
 import tweepy
 
 import Queue
@@ -12,19 +12,18 @@ from tweetsobserver import TweetsObserver
 
 q = Queue.Queue(maxsize=10)
 observer = TweetsObserver()
-
+TIMEZONE_OFFSET = datetime.utcnow() - datetime.now()
 class StreamWatcherListener(tweepy.StreamListener):
 
     status_wrapper = TextWrapper(width=60, initial_indent='    ', subsequent_indent='    ')
 
-
     def on_status(self, status):
         try:
-#            print self.status_wrapper.fill(status.text)
-            print '\n %s  %s  via %s\n' % (status.author.screen_name, status.created_at, status.source)
             coords = status.coordinates["coordinates"]
             if coords is not None:
-                tweet = {'location': coords, 'name': status.author.screen_name, 'time': status.created_at.strftime("%T %D"), 'source': status.source, 'text': self.status_wrapper.fill(status.text)}
+                local_created_time = status.created_at - TIMEZONE_OFFSET;
+                print '\n %s  %s  via %s\n' % (status.author.screen_name, local_created_time.strftime("%T %D"), status.source)
+                tweet = {'location': coords, 'name': status.author.screen_name, 'time': local_created_time.strftime("%T %D"), 'source': status.source, 'text': self.status_wrapper.fill(status.text)}
                 if q.full():
                     q.get()
                 else:
@@ -56,7 +55,7 @@ def filter():
     auth.set_access_token(access_token, access_token_secret)
 
     global stream
-    stream = tweepy.Stream(auth, StreamWatcherListener(), timeout=None)    
+    stream = tweepy.Stream(auth, StreamWatcherListener(), timeout=None)
     stream.filter(locations=[-180, -90, 180, 90])
 
 def stop_stream():
@@ -106,4 +105,5 @@ def stream_twitts():
             track_list = None
         print follow_list
         stream.filter(follow_list, track_list)
+
 

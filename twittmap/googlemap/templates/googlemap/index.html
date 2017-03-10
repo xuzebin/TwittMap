@@ -40,7 +40,7 @@
   </head>
   <body>
     <form id="search_form">
-      <input type="text" name="search" placeholder="Search..">
+      <input type="text" id="searchbox" placeholder="Search..", method="POST">
     </form>
     <div id="map"></div>
     <div id="coords"></div>
@@ -49,6 +49,7 @@
       var map;
       var twittCount = 0
       var markers = [];
+      var search_activated = false;
 
       function initMap() {
         map = new google.maps.Map(document.getElementById('map'), {
@@ -92,15 +93,22 @@
             complete: function() {
               // Schedule the next request when the current one's complete
               twittsCountDiv.textContent = 'tweets: ' + twittCount;
-              if (twittCount < 2000) {//we allow at most 1000 tweets to be displayed on map
-                setTimeout(worker, 2000);
-              } else {
-                // Stop tweets streaming in server
-                stopStreamingTweets();
-              }              
+              // If search operation is not activated, keep displaying real time streaming tweets.
+              // Otherwise display only the search result (while server keeps streaming real time to elasticsearch database)
+              if (!search_activated) {
+                if (twittCount < 100) {//we allow at most 1000 tweets to be displayed on map
+                  setTimeout(worker, 2000);
+                } else {
+                  // Stop tweets streaming in server
+                  stopStreamingTweets();
+                } 
+              }
+                           
             }
           });
         })();
+
+        twittsCountDiv.textContent = 'tweets: ' + twittCount;
 
         
         var coordsDiv = document.getElementById('coords');
@@ -112,32 +120,54 @@
         });
 
         $("#search_form").submit(function(event) {
-          $.ajax({
-            url: '/ajax/search/', 
-            success: function(data) {
-              // twittCount += data.length;
-              // var locs = data;
-              // for (var i = 0; i < locs.length; i++) {
-              //   var lat = locs[i]["location"]["lat"];
-              //   var lon = locs[i]["location"]["lon"];
+          search_activated = true;
+          clearMarkers();
+          twittsCountDiv.textContent = 'tweets: ' + twittCount;
 
-              //   var latLng = new google.maps.LatLng(lat, lon);
-              //   var marker = new google.maps.Marker({
-              //     position: latLng,
-              //     map: map,
-              //     draggable: true,
-              //     animation: google.maps.Animation.DROP,
-              //   });
-              //   attachMessage(marker, locs[i]);
-              //   markers.push(marker);
-              // }
-              // markerCluster = new MarkerClusterer(map, markers,
-              //   {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
+          var keyword = $('#searchbox').val();
+          console.log(keyword);
+
+          $.ajax({
+            type: "POST",
+            url: '/ajax/search/',
+            data: {keyword, csrfmiddlewaretoken: '{{ csrf_token }}'},
+            dataType: "json",
+            success: function(data) {
+              for (var i in data) {
+                var tweet = data[i]["_source"];
+                if (tweet == null) {
+                  continue;
+                }
+                var name = tweet.name;
+                if (name == null) {
+                  continue;
+                }
+                var loc = tweet.location;
+
+                var latLng = new google.maps.LatLng(loc.lat, loc.lon);
+                var marker = new google.maps.Marker({
+                  position: latLng,
+                  map: map,
+                  draggable: true,
+                  animation: google.maps.Animation.DROP,
+                });
+                attachMessage(marker, tweet);
+                twittCount += 1;
+                twittsCountDiv.textContent = 'tweets: ' + twittCount;
+                markers.push(marker);
+              }
+              markerCluster = new MarkerClusterer(map, markers,
+                  {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
+            },
+            error: function(data) {
+              console.log("error: " + data);
             }
           });
-        });      
+          event.preventDefault();
+        });   
 
       }
+
       function attachMessage(marker, message) {
           contentStr = '<div>' + '<p><b>' + message["name"] + '</b>' + '<div>' + message["time"] + '</div>'
           + '<p>' + message["text"] + '</p>' + '</div>';
@@ -149,7 +179,13 @@
             infowindow.open(marker.get('map'), marker);
           });
       }
-
+      function clearMarkers() {
+        for (var i = 0; i < markers.length; i++) {
+          markers[i].setMap(null);
+        }
+        markers = [];
+        twittCount = 0;
+      }
       function stopStreamingTweets() {
         $.ajax({
             url: '/ajax/stop_tweets/', 

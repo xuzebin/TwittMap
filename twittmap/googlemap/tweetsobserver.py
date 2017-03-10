@@ -2,12 +2,15 @@
 
 class TweetsObserver:
     def __init__(self):
-        self.__callback = None
+        self.callback = None
 
     def register_callback(self, callback):
-        self.__callback = callback
+        self.callback = callback
 
     def flush_tweet(self, tweet):
-        self.__callback.notify(tweet)
+        self.callback.notify(tweet)
+    
+    def save_tweets(self):
+        self.callback.save_tweets()
 
 

@@ -7,12 +7,17 @@ from datetime import datetime
 import tweepy
 
 import Queue
+import json
+
 
 from tweetsobserver import TweetsObserver
 
-q = Queue.Queue(maxsize=10)
 observer = TweetsObserver()
 TIMEZONE_OFFSET = datetime.utcnow() - datetime.now()
+
+twitter_data = []
+MAX_TWEETS = 100
+
 class StreamWatcherListener(tweepy.StreamListener):
 
     status_wrapper = TextWrapper(width=60, initial_indent='    ', subsequent_indent='    ')
@@ -22,13 +27,37 @@ class StreamWatcherListener(tweepy.StreamListener):
             coords = status.coordinates["coordinates"]
             if coords is not None:
                 local_created_time = status.created_at - TIMEZONE_OFFSET;
-                print '\n %s  %s  via %s\n' % (status.author.screen_name, local_created_time.strftime("%T %D"), status.source)
-                tweet = {'location': coords, 'name': status.author.screen_name, 'time': local_created_time.strftime("%T %D"), 'source': status.source, 'text': self.status_wrapper.fill(status.text)}
-                if q.full():
-                    q.get()
-                else:
-                    observer.flush_tweet(tweet)
-                    q.put(tweet)
+#                print '\n %s  %s  via %s\n' % (status.author.screen_name, local_created_time.strftime("%T %D"), status.source)
+                tweet = {
+                    'name': status.author.screen_name,
+                    'time': local_created_time.strftime("%Y/%m/%d %H:%M:%S"),
+                    'location': {'lat': coords[1], 'lon': coords[0]},
+                    'text': status.text
+                }
+
+                twitter_data.append(tweet)
+                observer.flush_tweet(tweet)
+
+                return True
+
+                # tweet = {'location': coords, 'name': status.author.screen_name, 'time': local_created_time.strftime("%T %D"), 'source': status.source, 'text': self.status_wrapper.fill(status.text)}
+                # if len(twitter_data) >= 20:
+                #     print 'twitter data > 20, writing to file...'
+
+                    # with open('data.json', 'r') as f:
+                    #     acc_data = json.load(f)
+                    # acc_data.extend(twitter_data)
+                    
+                    # with open('data.json', 'w') as f:
+                    #     json.dump(acc_data, f)
+
+                    # # Clear dictionary
+                    # del twitter_data[:]
+
+                # else:
+                    # observer.flush_tweet(tweet)
+                    # twitter_data.append(tweet)
+                    # print tweet
         except:
             # Catch any unicode errors while printing to console
             # and just ignore them to avoid breaking application.
@@ -59,10 +88,39 @@ def filter():
     stream.filter(locations=[-180, -90, 180, 90])
 
 def stop_stream():
+    print 'stopping stream'
+    save_tweets()
     global stream
     stream.disconnect()
 
-def stream_twitts():
+def save_tweets():
+    print 'saving...'
+    data = ''
+    id = 1
+    for tweet in twitter_data:
+        data += '{"index": {"_id": "%s"}}\n' % id
+        data += json.dumps({
+                "name": tweet['name'],
+                "time": tweet['time'],
+                "location": {
+                    "lat": tweet['location']['lat'],
+                    "lon": tweet['location']['lon']
+                    },
+                "text": tweet['text']
+                })+'\n'
+        id += 1
+
+    with open('data.json', 'w') as f:
+        f.write(data)
+#    with open('data.json', 'w') as f:
+ #       json.dump(twitter_data, f, encoding='utf-8', indent = 4)
+
+  #  f.close()
+
+    del twitter_data[:]
+    print 'deleting...'
+
+def stream_tweets():
     
     consumer_key = 'wxKA6I6SNsedU9MIq35GGafN4';
     consumer_secret = 'Nbuc9cHgI3UlTnVGGGaYGEWsbxoziYOrhnXIo5dnBhphurj4Fw';

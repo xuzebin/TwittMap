@@ -26,15 +26,19 @@ def update_tweets(request):
     response = json.dumps(locs)
     return HttpResponse(response, content_type='application/json')
 
-def collect_tweets():
-    cb = TweetCallback()
-    tweetstream.register_callback(cb)
-    tweetstream.filter()
-
 def stop_tweets(request):
     tweetstream.stop_stream()# stop the stream
     return HttpResponse()
 
+def search(request):
+    #TODO search using elasticsearch
+    response = json.dumps(result)
+    return HttpResponse(response, content_type='application/json')
+
+def collect_tweets():
+    cb = TweetCallback()
+    tweetstream.register_callback(cb)
+    tweetstream.filter()
 
 class TweetCallback():
     def notify(self, tweet):

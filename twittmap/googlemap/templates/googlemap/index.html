@@ -17,11 +17,31 @@
         color: rgb(255, 255, 255);
         font-size: 20px;
       }
+      input[type=text] {
+        width: 130px;
+        box-sizing: border-box;
+        border: 2px solid #ccc;
+        border-radius: 4px;
+        font-size: 16px;
+        background-color: white;
+        background-image: url('/static/searchicon.png');
+        background-position: 10px 10px; 
+        background-repeat: no-repeat;
+        padding: 12px 20px 12px 40px;
+        -webkit-transition: width 0.4s ease-in-out;
+        transition: width 0.4s ease-in-out;
+      }
+
+      input[type=text]:focus {
+        width: 100%;
+      }
 
     </style>
   </head>
   <body>
-    <h3>Twitt Map</h3>
+    <form id="search_form">
+      <input type="text" name="search" placeholder="Search..">
+    </form>
     <div id="map"></div>
     <div id="coords"></div>
     <div id="twitts_count"></div>
@@ -29,7 +49,6 @@
       var map;
       var twittCount = 0
       var markers = [];
-      // Add a marker clusterer to manage the markers.
 
       function initMap() {
         map = new google.maps.Map(document.getElementById('map'), {
@@ -50,13 +69,13 @@
           $.ajax({
             url: '/ajax/update_tweets/', 
             success: function(data) {
-              // $('.result').html(data);
-              // console.log("ajax response:");
-              twittCount += data.length
+              twittCount += data.length;
               var locs = data;
               for (var i = 0; i < locs.length; i++) {
-                var coords = locs[i]["location"];
-                var latLng = new google.maps.LatLng(coords[1],coords[0]);
+                var lat = locs[i]["location"]["lat"];
+                var lon = locs[i]["location"]["lon"];
+
+                var latLng = new google.maps.LatLng(lat, lon);
                 var marker = new google.maps.Marker({
                   position: latLng,
                   map: map,
@@ -73,7 +92,7 @@
             complete: function() {
               // Schedule the next request when the current one's complete
               twittsCountDiv.textContent = 'tweets: ' + twittCount;
-              if (twittCount < 1000) {//we allow at most 1000 tweets to be displayed on map
+              if (twittCount < 2000) {//we allow at most 1000 tweets to be displayed on map
                 setTimeout(worker, 2000);
               } else {
                 // Stop tweets streaming in server
@@ -91,6 +110,32 @@
               'lat: ' + Math.round(event.latLng.lat()) + ', ' +
               'lng: ' + Math.round(event.latLng.lng());
         });
+
+        $("#search_form").submit(function(event) {
+          $.ajax({
+            url: '/ajax/search/', 
+            success: function(data) {
+              // twittCount += data.length;
+              // var locs = data;
+              // for (var i = 0; i < locs.length; i++) {
+              //   var lat = locs[i]["location"]["lat"];
+              //   var lon = locs[i]["location"]["lon"];
+
+              //   var latLng = new google.maps.LatLng(lat, lon);
+              //   var marker = new google.maps.Marker({
+              //     position: latLng,
+              //     map: map,
+              //     draggable: true,
+              //     animation: google.maps.Animation.DROP,
+              //   });
+              //   attachMessage(marker, locs[i]);
+              //   markers.push(marker);
+              // }
+              // markerCluster = new MarkerClusterer(map, markers,
+              //   {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
+            }
+          });
+        });      
 
       }
       function attachMessage(marker, message) {

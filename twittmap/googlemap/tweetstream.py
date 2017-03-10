@@ -6,7 +6,6 @@ from textwrap import TextWrapper
 from datetime import datetime
 import tweepy
 
-import Queue
 import json
 
 from tweetsobserver import TweetsObserver
@@ -29,9 +28,7 @@ class StreamWatcherListener(tweepy.StreamListener):
                     'location': {'lat': coords[1], 'lon': coords[0]},
                     'text': status.text
                 }
-
                 observer.flush_tweet(tweet)
-
                 return True
 
         except:
@@ -51,7 +48,7 @@ class StreamWatcherListener(tweepy.StreamListener):
 def register_callback(callback):
     observer.register_callback(callback)
 
-def filter():
+def start_stream():
     consumer_key = 'wxKA6I6SNsedU9MIq35GGafN4';
     consumer_secret = 'Nbuc9cHgI3UlTnVGGGaYGEWsbxoziYOrhnXIo5dnBhphurj4Fw';
     access_token = '770112962380042241-txAffaFd4o4NMp9B94WWmZ4CV7HyvhY';
@@ -69,33 +66,6 @@ def stop_stream():
     observer.save_tweets()
     global stream
     stream.disconnect()
-
-# def save_tweets():
-#     print 'saving...'
-#     data = ''
-#     for tweet in twitter_data:
-#         print tweet
-#         data += '{"index": {"_id": "%s"}}\n' % id
-#         data += json.dumps({
-#                 "name": tweet['name'],
-#                 "time": tweet['time'],
-#                 "location": {
-#                     "lat": tweet['location']['lat'],
-#                     "lon": tweet['location']['lon']
-#                 },
-#                 "text": tweet['text']
-#                 })+'\n'
-#         id += 1
-        
-#     # print 'uploading'
-#     # reponse = es.upload(data)
-#     # print response
-        
-#     with open('data.json', 'w') as f:
-#         f.write(data)
-#     del twitter_data[:]
-#     twitter_data = []
-#     print 'deleting...'
 
 
 

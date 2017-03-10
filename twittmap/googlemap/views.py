@@ -46,22 +46,18 @@ class TweetCallback():
         
 
 
-#q = Queue.Queue(maxsize = 100)
 es = ElasticsearchWrapper('localhost:9200', 'twitter', 'tweet')
 cb = TweetCallback(es, 20) # Upload to elasticsearch database every 20 tweets
 
-# Create your views here.
 def index(request):
-    t = threading.Thread(target=collect_tweets);#, args=(), kwargs={})
+    # Create a thread for tweets streaming
+    t = threading.Thread(target=tweetstream_thread);
     t.setDaemon(True)
     t.start()
+
     return render(request, 'googlemap/index.html')
 
 def update_tweets(request):
-#     locs = list(q.queue)
-#     with q.mutex:
-#         q.queue.clear()
-#         response = json.dumps(locs)
     response = json.dumps(cb.tweet_list)
     cb.clear_tweets()
     return HttpResponse(response, content_type='application/json')
@@ -75,10 +71,9 @@ def search(request):
     response = es.search(keyword)
     response = response['hits']['hits']
     response = json.dumps(response)
-    print response
     return HttpResponse(response, content_type='application/json')
 
-def collect_tweets():
+def tweetstream_thread():
     tweetstream.register_callback(cb)
-    tweetstream.filter()
+    tweetstream.start_stream()
 

@@ -56,6 +56,7 @@
           zoom: 2,
           center: new google.maps.LatLng(2.8,-187.3),
         });
+
         var opt = { minZoom: 2 };
         map.setOptions(opt);
 
@@ -80,15 +81,14 @@
                 var marker = new google.maps.Marker({
                   position: latLng,
                   map: map,
-                  draggable: true,
+                  draggable: false,
                   animation: google.maps.Animation.DROP,
 
                 });
                 attachMessage(marker, locs[i]);
                 markers.push(marker);
+                markerCluster.addMarker(marker, true);
               }
-              markerCluster = new MarkerClusterer(map, markers,
-                {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
             },
             complete: function() {
               // Schedule the next request when the current one's complete
@@ -102,8 +102,7 @@
                   // Stop tweets streaming in server
                   stopStreamingTweets();
                 } 
-              }
-                           
+              }      
             }
           });
         })();
@@ -121,7 +120,9 @@
 
         $("#search_form").submit(function(event) {
           search_activated = true;
+          markerCluster.removeMarkers(markers);
           clearMarkers();
+
           twittsCountDiv.textContent = 'tweets: ' + twittCount;
 
           var keyword = $('#searchbox').val();
@@ -148,7 +149,7 @@
                 var marker = new google.maps.Marker({
                   position: latLng,
                   map: map,
-                  draggable: true,
+                  draggable: false,
                   animation: google.maps.Animation.DROP,
                 });
                 
@@ -156,16 +157,62 @@
                 twittCount += 1;
                 twittsCountDiv.textContent = 'tweets: ' + twittCount;
                 markers.push(marker);
+                markerCluster.addMarker(marker);
               }
-              markerCluster = new MarkerClusterer(map, markers,
-                  {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
             },
             error: function(data) {
               console.log("error: " + data);
             }
           });
           event.preventDefault();
-        });   
+        });
+
+
+        //Geospatial search when clicking a point on the map
+        map.addListener('click', function(e) {
+          search_activated = true;
+          markerCluster.removeMarkers(markers);
+          clearMarkers();
+          var keyword = 'good';
+          twittsCountDiv.textContent = 'tweets: ' + twittCount;
+          $.ajax({
+            type: "POST",
+            url: '/ajax/search/',
+            data: {keyword, csrfmiddlewaretoken: '{{ csrf_token }}'},
+            dataType: "json",
+            success: function(data) {
+              for (var i in data) {
+                var tweet = data[i]["_source"];
+                if (tweet == null) {
+                  continue;
+                }
+                var name = tweet.name;
+                if (name == null) {
+                  continue;
+                }
+                var loc = tweet.location;
+
+                var latLng = new google.maps.LatLng(loc.lat, loc.lon);
+                var marker = new google.maps.Marker({
+                  position: latLng,
+                  map: map,
+                  draggable: false,
+                  animation: google.maps.Animation.DROP,
+                });
+                
+                attachMessage(marker, tweet);
+                twittCount += 1;
+                twittsCountDiv.textContent = 'tweets: ' + twittCount;
+                markers.push(marker);
+                markerCluster.addMarker(marker);
+              }
+            },
+            error: function(data) {
+              console.log("error: " + data);
+            }
+          });
+          event.preventDefault();
+        });
 
       }
 

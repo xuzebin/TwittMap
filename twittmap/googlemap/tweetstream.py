@@ -10,6 +10,11 @@ import json
 
 from tweetsobserver import TweetsObserver
 
+consumer_key = 'wxKA6I6SNsedU9MIq35GGafN4';
+consumer_secret = 'Nbuc9cHgI3UlTnVGGGaYGEWsbxoziYOrhnXIo5dnBhphurj4Fw';
+access_token = '770112962380042241-txAffaFd4o4NMp9B94WWmZ4CV7HyvhY';
+access_token_secret = 'KQ5s9uPWarXmivPZVOOW8HUXNjHhEm4oMqDnjdw4enSlJ';
+
 observer = TweetsObserver()
 TIMEZONE_OFFSET = datetime.utcnow() - datetime.now()
 
@@ -49,10 +54,7 @@ def register_callback(callback):
     observer.register_callback(callback)
 
 def start_stream():
-    consumer_key = 'wxKA6I6SNsedU9MIq35GGafN4';
-    consumer_secret = 'Nbuc9cHgI3UlTnVGGGaYGEWsbxoziYOrhnXIo5dnBhphurj4Fw';
-    access_token = '770112962380042241-txAffaFd4o4NMp9B94WWmZ4CV7HyvhY';
-    access_token_secret = 'KQ5s9uPWarXmivPZVOOW8HUXNjHhEm4oMqDnjdw4enSlJ';
+
 
     auth = tweepy.auth.OAuthHandler(consumer_key, consumer_secret)
     auth.set_access_token(access_token, access_token_secret)

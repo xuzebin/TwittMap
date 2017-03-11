@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="utf-8">
     <style>
       #map {
@@ -11,57 +11,214 @@
     		height: 100%;
     		margin: 0;
     		padding: 0;
+
   	  }
       #coords, #twitts_count {
-        background-color: rgba(1, 1, 1, 0.1);
-        color: rgb(255, 255, 255);
-        font-size: 20px;
-      }
-      input[type=text] {
-        width: 130px;
-        box-sizing: border-box;
-        border: 2px solid #ccc;
-        border-radius: 4px;
+        background-color: #fff;
+        color: rgb(25, 25, 25);
+        font-size: 'Roboto,Arial,sans-serif';
         font-size: 16px;
-        background-color: white;
-        background-image: url('/static/searchicon.png');
-        background-position: 10px 10px; 
-        background-repeat: no-repeat;
-        padding: 12px 20px 12px 40px;
-        -webkit-transition: width 0.4s ease-in-out;
-        transition: width 0.4s ease-in-out;
+        margin-left: 5px;
+        padding-left: 5px;
+        padding-right: 5px;
+        border: 1px solid;
       }
 
-      input[type=text]:focus {
-        width: 100%;
+      #clear-btn {
+        position: absolute;
+        margin: auto;
+        display: inline-block;
+        margin-top: 20px;
       }
+      .mid-btn {
+        text-align: center;
+        z-index: 1;
+        position: relative;
+      }
+      
+      #searchbox {
+        background-color: #fff;
+        font-size: 15px;
+        font-weight: 300;
+        margin-left: 12px;
+        padding: 0 11px 0 13px;
+        text-overflow: ellipsis;
+        width: 303px;
+        margin-top: 20px;
+        position: absolute;
+        z-index: 1;
+        box-shadow: 0 0 6px rgba(0, 0, 0, 0.3);
+      
+        -webkit-border-radius: 2px;
+        -moz-border-radius: 2px;
+        border-radius: 2px;
+        border: 1px solid #e6e6e6;
+      }
+      #searchbox:focus {
+        border-color: #4d90fe;
+      }
+
+      #distance-options {
+        -webkit-box-shadow: 0 0 6px rgba(0,0,0,0.298039);
+        -moz-box-shadow: 0 0 6px rgba(0,0,0,0.298039);
+        box-shadow: 0 0 6px rgba(0,0,0,0.298039);
+        -webkit-border-radius: 2px;
+        -moz-border-radius: 2px;
+        border-radius: 2px;
+        background: #fff;
+        color: #666;
+        position: absolute;
+        padding: 10px;
+        margin-left: 12px;
+        margin-top: 55px;
+        width: auto;
+        z-index: 1;
+      }
+      #distance-options label {
+        font-weight: 500;
+      }
+      #distance-options #radiusInput {
+          width: 100px;
+          padding: 3px;
+          position: relative;
+      }
+      #distance-options input {
+          -webkit-border-radius: 2px;
+          -moz-border-radius: 2px;
+          border-radius: 2px;
+          border: 1px solid #e6e6e6;
+      }
+      #distance-options #unitSelector {
+          font-family: Roboto,Arial,sans-serif;
+          position: relative;
+          margin-top: -1px;
+      }
+      select, input[type="color" i][list] {
+          background-color: rgb(248, 248, 248);
+          border-width: 1px;
+          border-style: solid;
+          border-color: rgb(166, 166, 166);
+      }
+
 
     </style>
   </head>
   <body>
-    <form id="search_form">
-      <input type="text" id="searchbox" placeholder="Search..", method="POST">
-    </form>
+    <div class="mid-btn">
+      <button type="button" id="clear-btn" class="btn btn-success">Clear</button>
+    </div>
+<!--     <input id="searchbox" class="controls" type="text" placeholder="Search keyword...">
+    <input id="geo-distance-searchbox" class="controls" type="text" placeholder="Enter a distance"> -->
+    <div>  
+      <form id="search-form">
+        <input type="text" id="searchbox" placeholder="Search by keyword...", method="POST">
+      </form>
+      <form id="distance-options">
+        <label for="radiusInput">Radius</label>
+        <input type="number" value="1000" min="0" id="radiusInput" name="radiusInput" autofocus="">
+        <label for="unitSelector">Units</label>
+        <select id="unitSelector" name="unitSelector">
+              <option value="km">Kilometers</option>
+              <option value="m">Meters</option>
+              <!-- <option value="mi">Miles</option> -->
+          </select>
+          <p>Click to place a circle on map</p>
+      </form>
+    </div>
+<!--     <div class="search-container">
+      <div class="row">
+        <div class="col-md-12">
+                <div class="input-group" id="adv-search">
+                    <input type="text" id= "searchbox" class="form-control" placeholder="Search by keyword" />
+                    <div class="input-group-btn">
+                        <div class="btn-group" role="group">
+                            <div class="dropdown dropdown-lg">
+                                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+                                <div class="dropdown-menu dropdown-menu-right" role="menu">
+                                    <form class="form-horizontal" role="form">
+                                      <div class="form-group">
+                                        <label for="filter">Filter by</label>
+                                        <select class="form-control">
+                                            <option value="0" selected>All Snippets</option>
+                                            <option value="1">Featured</option>
+                                            <option value="2">Most popular</option>
+                                            <option value="3">Top rated</option>
+                                            <option value="4">Most commented</option>
+                                        </select>
+                                      </div>
+                                      <div class="form-group">
+                                        <label for="contain">Name</label>
+                                        <input class="form-control" type="text" />
+                                      </div>
+                                      <div class="form-group">
+                                        <label for="contain">Contains the words</label>
+                                        <input class="form-control" type="text" />
+                                      </div>
+                                      <button type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <button type="button" id="search-btn" class="btn btn-primary"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
+                            <button type="button" id="geo-distance-btn" class="btn btn-default btn-primary">
+                              <span class="glyphicon glyphicon-map-marker"></span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+              </div>
+            </div>
+      </div>
+    </div> -->
+    
     <div id="map"></div>
-    <div id="coords"></div>
+    <!-- <div id="coords"></div> -->
     <div id="twitts_count"></div>
+
     <script>
       var map;
       var twittCount = 0
       var markers = [];
       var search_activated = false;
 
+      var distance_circle;
+
+      var circle_radius = 1000000;//unit: meter
+
+
       function initMap() {
+
         map = new google.maps.Map(document.getElementById('map'), {
           zoom: 2,
           center: new google.maps.LatLng(2.8,-187.3),
+          zoomControl: true,
+          zoomControlOptions: {
+            position: google.maps.ControlPosition.RIGHT_CENTER
+          },
+          mapTypeControl: true,
+          mapTypeControlOptions: {
+              style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
+              position: google.maps.ControlPosition.RIGHT_TOP
+          },
+          streetViewControl: false,
         });
 
         var opt = { minZoom: 2 };
         map.setOptions(opt);
 
+
         var twittsCountDiv = document.getElementById('twitts_count');
-        map.controls[google.maps.ControlPosition.TOP_CENTER].push(twittsCountDiv);
+        map.controls[google.maps.ControlPosition.LEFT_CENTER].push(twittsCountDiv);
+
+        // // Create the search box and link it to the UI element.
+        // var input = document.getElementById('searchbox');
+        // var searchBox = new google.maps.places.SearchBox(input);
+        // map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
+
+        // // Create the geo distance search box
+        // var input = document.getElementById('geo-distance-searchbox');
+        // var searchBox = new google.maps.places.SearchBox(input);
+        // map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
 
         // Add a marker clusterer to manage the markers.
         var markerCluster = new MarkerClusterer(map, markers,
@@ -95,6 +252,7 @@
               twittsCountDiv.textContent = 'tweets: ' + twittCount;
               // If search operation is not activated, keep displaying real time streaming tweets.
               // Otherwise display only the search result (while server keeps streaming real time to elasticsearch database)
+              console.log("test from worker");
               if (!search_activated) {
                 if (twittCount < 100) {//we allow at most 1000 tweets to be displayed on map
                   setTimeout(worker, 2000);
@@ -109,19 +267,13 @@
 
         twittsCountDiv.textContent = 'tweets: ' + twittCount;
 
-        
-        var coordsDiv = document.getElementById('coords');
-           map.controls[google.maps.ControlPosition.LEFT_CENTER].push(coordsDiv);
-           map.addListener('mousemove', function(event) {
-             coordsDiv.textContent =
-              'lat: ' + Math.round(event.latLng.lat()) + ', ' +
-              'lng: ' + Math.round(event.latLng.lng());
-        });
 
-        $("#search_form").submit(function(event) {
+        $("#search-form").submit(function(event) {
+          event.preventDefault();
           search_activated = true;
           markerCluster.removeMarkers(markers);
-          clearMarkers();
+          // clearMarkers();
+          clearAll();
 
           twittsCountDiv.textContent = 'tweets: ' + twittCount;
 
@@ -164,17 +316,47 @@
               console.log("error: " + data);
             }
           });
-          event.preventDefault();
+
+        });
+
+        $("#distance-options").change(function() {
+          var distance = $("#radiusInput").val();
+          var selected = $("#unitSelector").find(":selected").val();
+
+          distance = distance < 0 ? 0 : distance;
+          distance = selected == "km" ? distance * 1000 : distance;
+          updateCircleRadius(distance);
+          distance_circle.setRadius(distance);
+        });
+        $("#distance-options").submit(function(e) {
+          e.preventDefault();
         });
 
 
-        //Geospatial search when clicking a point on the map
+        //Geo distance search by clicking a point on the map
         map.addListener('click', function(e) {
-          // search_activated = true;
+          search_activated = true;
           markerCluster.removeMarkers(markers);
           clearMarkers();
+          //Draw a circle at the clicked point
+          if (distance_circle == null) {
+            distance_circle = new google.maps.Circle({
+              strokeColor: '#FF0000',
+              strokeOpacity: 0.8,
+              strokeWeight: 2,
+              fillColor: '#FF0000',
+              fillOpacity: 0.35,
+              map: map,
+              center: e.latLng,
+              radius: circle_radius
+            });
+          } else {
+            distance_circle.setCenter(e.latLng);
+          }
+
+
           var location = e.latLng.lat().toString() + "," + e.latLng.lng().toString();
-          var distance = 2000;
+          var distance = getCircleRadius() / 1000;
           twittsCountDiv.textContent = 'tweets: ' + twittCount;
           $.ajax({
             type: "POST",
@@ -215,9 +397,15 @@
           event.preventDefault();
         });
 
+        $("#clear-btn").click(function() {
+          markerCluster.removeMarkers(markers);
+          clearAll();
+        });
+
       }
 
       function attachMessage(marker, message) {
+          console.log(message["text"]);
           contentStr = '<div>' + '<p><b>' + message["name"] + '</b>' + '<div>' + message["time"] + '</div>'
           + '<p>' + message["text"] + '</p>' + '</div>';
           var infowindow = new google.maps.InfoWindow({
@@ -228,6 +416,10 @@
             infowindow.open(marker.get('map'), marker);
           });
       }
+      function clearAll() {
+        clearMarkers();
+        clearCircle();
+      }
       function clearMarkers() {
         for (var i = 0; i < markers.length; i++) {
           markers[i].setMap(null);
@@ -235,10 +427,22 @@
         markers = [];
         twittCount = 0;
       }
+      function clearCircle() {
+        if (distance_circle != null) {
+          distance_circle.setMap(null);
+          distance_circle = null;
+        }
+      }
       function stopStreamingTweets() {
         $.ajax({
             url: '/ajax/stop_tweets/', 
           });
+      }
+      function updateCircleRadius(radius) {
+        circle_radius = radius;
+      }
+      function getCircleRadius() {
+        return circle_radius;
       }
     </script>
     <script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js">
@@ -247,6 +451,9 @@
    	  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyADVvnA5fYL4ecja-sl3JC0JraDFaU2iRE&callback=initMap">
     </script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js">
+    </script>
   </body>
 </html>
 

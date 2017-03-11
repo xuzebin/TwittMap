@@ -73,6 +73,17 @@ def search(request):
     response = json.dumps(response)
     return HttpResponse(response, content_type='application/json')
 
+def geosearch(request):
+    location = request.POST.get('location')
+    distance = request.POST.get('distance')
+    print location
+    print distance
+    response = es.geosearch(location, distance)
+    print response
+    response = response['hits']['hits']
+    response = json.dumps(response)
+    return HttpResponse(response, content_type='application/json')
+
 def tweetstream_thread():
     tweetstream.register_callback(cb)
     tweetstream.start_stream()

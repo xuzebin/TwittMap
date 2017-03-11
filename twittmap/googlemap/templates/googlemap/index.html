@@ -170,15 +170,16 @@
 
         //Geospatial search when clicking a point on the map
         map.addListener('click', function(e) {
-          search_activated = true;
+          // search_activated = true;
           markerCluster.removeMarkers(markers);
           clearMarkers();
-          var keyword = 'good';
+          var location = e.latLng.lat().toString() + "," + e.latLng.lng().toString();
+          var distance = 2000;
           twittsCountDiv.textContent = 'tweets: ' + twittCount;
           $.ajax({
             type: "POST",
-            url: '/ajax/search/',
-            data: {keyword, csrfmiddlewaretoken: '{{ csrf_token }}'},
+            url: '/ajax/geosearch/',
+            data: {location, distance, csrfmiddlewaretoken: '{{ csrf_token }}'},
             dataType: "json",
             success: function(data) {
               for (var i in data) {

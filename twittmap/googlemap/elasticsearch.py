@@ -44,4 +44,26 @@ class ElasticsearchWrapper:
         response = requests.post(search_address, data=json.dumps(data))
         return response.json()
 
-    
+    def geosearch(self, location, distance):
+        data = {
+            "query": {
+                "bool": {
+#                 "must": {
+#                     "query": {
+#                         "match_all": {}
+#                     }
+#                 },
+                    "filter": {
+                        "geo_distance": {
+                            "distance": '%skm' % (distance),
+                            "location": location
+                        }
+                    }
+                }
+            }
+        }
+        search_address = '%s/_search' % (self.address)
+        response = requests.post(search_address, data=json.dumps(data))
+        return response.json()
+        
+        

@@ -15,10 +15,10 @@ class TweetStreamThread:
         tweet_streamer.start_stream()
 
     def start_thread(self):
+        print 'thread started'
         # Create a thread for tweets streaming
         t = threading.Thread(target=self.stream_thread);
         t.setDaemon(True)
         t.start()
-    
 
 

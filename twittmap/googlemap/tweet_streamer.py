@@ -1,26 +1,18 @@
 #!/usr/bin/env python
 
 import time
-from getpass import getpass
-from textwrap import TextWrapper
-from datetime import datetime
 import tweepy
-
 import json
 
+from getpass import getpass
+from datetime import datetime
+from ConfigParser import ConfigParser
 from tweet_observer import TweetObserver
-
-consumer_key = 'wxKA6I6SNsedU9MIq35GGafN4';
-consumer_secret = 'Nbuc9cHgI3UlTnVGGGaYGEWsbxoziYOrhnXIo5dnBhphurj4Fw';
-access_token = '770112962380042241-txAffaFd4o4NMp9B94WWmZ4CV7HyvhY';
-access_token_secret = 'KQ5s9uPWarXmivPZVOOW8HUXNjHhEm4oMqDnjdw4enSlJ';
 
 observer = TweetObserver()
 TIMEZONE_OFFSET = datetime.utcnow() - datetime.now()
 
-class StreamWatcherListener(tweepy.StreamListener):
-
-    status_wrapper = TextWrapper(width=60, initial_indent='    ', subsequent_indent='    ')
+class TweetStreamListener(tweepy.StreamListener):
 
     def on_status(self, status):
         try:
@@ -34,6 +26,7 @@ class StreamWatcherListener(tweepy.StreamListener):
                     'text': status.text
                 }
                 observer.flush_tweet(tweet)
+
                 return True
 
         except:
@@ -47,18 +40,19 @@ class StreamWatcherListener(tweepy.StreamListener):
 
     def on_timeout(self):
         print 'Snoozing Zzzzzz'
-        
 
 
 def register_callback(callback):
     observer.register_callback(callback)
 
 def start_stream():
+    consumer_key, consumer_secret, access_token, access_token_secret = read_config('setup.cfg')
+
     auth = tweepy.auth.OAuthHandler(consumer_key, consumer_secret)
     auth.set_access_token(access_token, access_token_secret)
 
     global stream
-    stream = tweepy.Stream(auth, StreamWatcherListener(), timeout=None)
+    stream = tweepy.Stream(auth, TweetStreamListener(), timeout=None)
     stream.filter(locations=[-180, -90, 180, 90])
 
 def stop_stream():
@@ -67,5 +61,14 @@ def stop_stream():
     global stream
     stream.disconnect()
 
+def read_config(config_file):
+    config = ConfigParser()
+    config.read(config_file)
 
+    consumer_key = config.get('TweetStreaming', 'consumer_key')
+    consumer_secret = config.get('TweetStreaming', 'consumer_secret')
+    access_token = config.get('TweetStreaming', 'access_token')
+    access_token_secret = config.get('TweetStreaming', 'access_token_secret')
+
+    return (consumer_key, consumer_secret, access_token, access_token_secret)
 

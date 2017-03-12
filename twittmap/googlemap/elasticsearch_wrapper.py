@@ -1,21 +1,26 @@
 #!/usr/bin/env python
 import json, requests
 
-class ElasticsearchWrapper:
-    def __init__(self, url, index, mapping_name):
-        self.url = url
-        self.index = index
-        self.mapping_name = mapping_name
-        self.address = 'http://%s/%s/%s' % (url, index, mapping_name)
+from ConfigParser import ConfigParser
 
-    def create_index(self, index):
+class ElasticsearchWrapper:
+    def __init__(self):
+        config = ConfigParser()
+        config.read("setup.cfg")
+
+        self.end_point = config.get('Elasticsearch', 'end_point')
+        self.index = config.get('Elasticsearch', 'index')
+        self.mapping_type = config.get('Elasticsearch', 'mapping_type')        
+        self.address = 'http://%s/%s/%s' % (self.end_point, self.index, self.mapping_type)
+
+    def create_index(self):
         data = {
             "settings": {
                 "number_of_shards": 2,
                 "number_of_replicas": 1
             },
             "mappings": {
-                mapping_name: {
+                self.mapping_type: {
                     "properties": {
                         "name": { "type" : "text" },
                         "time": { "type": "date", "format": "yyyy/MM/dd HH:mm:ss"},
@@ -32,6 +37,7 @@ class ElasticsearchWrapper:
         print 'uploading to databse...'
         upload_address = '%s/_bulk' % (self.address)
         response = requests.put(upload_address, data=data)
+        print 'upload success'
         return response
 
     def search(self, keyword):

@@ -12,7 +12,7 @@
     		margin: 0;
     		padding: 0;
   	  }
-      #coords, #twitts_count {
+      #twitts_count {
         background-color: #fff;
         color: rgb(25, 25, 25);
         font-size: 'Roboto,Arial,sans-serif';
@@ -26,7 +26,7 @@
         border: 1px solid #e6e6e6;
       }
 
-      #clear-btn {
+      #reset-btn {
         position: absolute;
         margin: auto;
         display: inline-block;
@@ -45,7 +45,7 @@
 
         padding: 3px 13px 3px 13px;
         text-overflow: ellipsis;
-        width: 305px;
+        width: 335px;
         margin-top: 20px;
         position: relative;
         z-index: 1;
@@ -118,10 +118,8 @@
   </head>
   <body>
     <div class="mid-btn">
-      <button type="button" id="clear-btn" class="btn btn-success">Clear</button>
+      <button type="button" id="reset-btn" class="btn btn-success">Reset</button>
     </div>
-<!--     <input id="searchbox" class="controls" type="text" placeholder="Search keyword...">
-    <input id="geo-distance-searchbox" class="controls" type="text" placeholder="Enter a distance"> -->
     <div id="control-block">  
       <form id="search-form">
         <input type="text" id="searchbox" placeholder="Search tweets...", method="POST">
@@ -133,64 +131,18 @@
         <select id="unitSelector" name="unitSelector">
               <option value="km">Kilometers</option>
               <option value="m">Meters</option>
-              <!-- <option value="mi">Miles</option> -->
           </select>
           <p>Click to show tweets on the map within a distance</p>
       </form>
     </div>
-<!--     <div class="search-container">
-      <div class="row">
-        <div class="col-md-12">
-                <div class="input-group" id="adv-search">
-                    <input type="text" id= "searchbox" class="form-control" placeholder="Search by keyword" />
-                    <div class="input-group-btn">
-                        <div class="btn-group" role="group">
-                            <div class="dropdown dropdown-lg">
-                                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
-                                <div class="dropdown-menu dropdown-menu-right" role="menu">
-                                    <form class="form-horizontal" role="form">
-                                      <div class="form-group">
-                                        <label for="filter">Filter by</label>
-                                        <select class="form-control">
-                                            <option value="0" selected>All Snippets</option>
-                                            <option value="1">Featured</option>
-                                            <option value="2">Most popular</option>
-                                            <option value="3">Top rated</option>
-                                            <option value="4">Most commented</option>
-                                        </select>
-                                      </div>
-                                      <div class="form-group">
-                                        <label for="contain">Name</label>
-                                        <input class="form-control" type="text" />
-                                      </div>
-                                      <div class="form-group">
-                                        <label for="contain">Contains the words</label>
-                                        <input class="form-control" type="text" />
-                                      </div>
-                                      <button type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
-                                    </form>
-                                </div>
-                            </div>
-
-                            <button type="button" id="search-btn" class="btn btn-primary"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
-                            <button type="button" id="geo-distance-btn" class="btn btn-default btn-primary">
-                              <span class="glyphicon glyphicon-map-marker"></span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-              </div>
-            </div>
-      </div>
-    </div> -->
     
     <div id="map"></div>
-    <!-- <div id="coords"></div> -->
-    <div id="twitts_count"></div>
+    <div id="twitts_count" class="count"></div>
 
     <script>
       var map;
       var twittCount = 0
+      var lastTweetCount = 0
       var markers = [];
       // var search_activated = false;
       var fetching = true;
@@ -199,6 +151,20 @@
 
       var circle_radius = 1000000;//unit: meter
       var twittsCountDiv = document.getElementById('twitts_count');
+
+
+      function updateCount(last, cur) {
+        $('.count').each(function () {
+          var $this = $(this);
+          jQuery({ Counter: last }).animate({ Counter: cur }, {
+            duration: 1000,
+            easing: 'swing',
+            step: function () {
+              $this.text("Tweets: " + Math.ceil(this.Counter));
+            }
+          });
+        });
+      }
 
       function initMap() {
 
@@ -209,11 +175,7 @@
           zoomControlOptions: {
             position: google.maps.ControlPosition.RIGHT_CENTER
           },
-          mapTypeControl: true,
-          mapTypeControlOptions: {
-              style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
-              position: google.maps.ControlPosition.RIGHT_TOP
-          },
+          mapTypeControl: false,
           streetViewControl: false,
         });
 
@@ -224,75 +186,22 @@
         // var twittsCountDiv = document.getElementById('twitts_count');
         map.controls[google.maps.ControlPosition.LEFT_CENTER].push(twittsCountDiv);
 
-        // // Create the search box and link it to the UI element.
-        // var input = document.getElementById('searchbox');
-        // var searchBox = new google.maps.places.SearchBox(input);
-        // map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
-
-        // // Create the geo distance search box
-        // var input = document.getElementById('geo-distance-searchbox');
-        // var searchBox = new google.maps.places.SearchBox(input);
-        // map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
-
         // Add a marker clusterer to manage the markers.
         var markerCluster = new MarkerClusterer(map, markers,
          {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
 
-        // (function worker() {
-        //   $.ajax({
-        //     url: '/ajax/update_tweets/', 
-        //     success: function(data) {
-        //       twittCount += data.length;
-        //       var locs = data;
-        //       for (var i = 0; i < locs.length; i++) {
+        startFetchingTweets(map, markerCluster, 5000, 5000);
 
-        //         var lat = locs[i]["_source"]["location"]["lat"];
-        //         var lon = locs[i]["_source"]["location"]["lon"];
-
-        //         var latLng = new google.maps.LatLng(lat, lon);
-        //         var marker = new google.maps.Marker({
-        //           position: latLng,
-        //           map: map,
-        //           draggable: false,
-        //           animation: google.maps.Animation.DROP,
-
-        //         });
-        //         attachMessage(marker, locs[i]);
-        //         markers.push(marker);
-        //         markerCluster.addMarker(marker, true);
-        //       }
-        //     },
-        //     complete: function() {
-        //       // Schedule the next request when the current one's complete
-        //       twittsCountDiv.textContent = 'tweets: ' + twittCount;
-        //       // If search operation is not activated, keep displaying real time streaming tweets.
-        //       // Otherwise display only the search result (while server keeps streaming real time to elasticsearch database)
-        //       console.log("test from worker");
-        //       if (!search_activated) {
-        //         if (twittCount < 100) {//we allow at most 1000 tweets to be displayed on map
-        //           setTimeout(worker, 2000);
-        //         } else {
-        //           // Stop tweets streaming in server
-        //           stopStreamingTweets();
-        //         } 
-        //       }      
-        //     }
-        //   });
-        // })();
-        startFetchingTweets(map, markerCluster, 2000, 1000);
-
-        twittsCountDiv.textContent = 'tweets: ' + twittCount;
+        updateCount(lastTweetCount, twittCount);
 
 
         $("#search-form").submit(function(event) {
           event.preventDefault();
-          // search_activated = true;
           fetching = false;
           markerCluster.removeMarkers(markers);
-          // clearMarkers();
           clearAll();
 
-          twittsCountDiv.textContent = 'tweets: ' + twittCount;
+          updateCount(lastTweetCount, twittCount);
 
           var keyword = $('#searchbox').val();
           console.log(keyword);
@@ -324,10 +233,11 @@
                 
                 attachMessage(marker, tweet);
                 twittCount += 1;
-                twittsCountDiv.textContent = 'tweets: ' + twittCount;
+
                 markers.push(marker);
                 markerCluster.addMarker(marker);
               }
+              updateCount(lastTweetCount, twittCount);
             },
             error: function(data) {
               console.log("error: " + data);
@@ -352,7 +262,6 @@
 
         //Geo distance search by clicking a point on the map
         map.addListener('click', function(e) {
-          // search_activated = true;
           fetching = false;
           markerCluster.removeMarkers(markers);
           clearMarkers();
@@ -375,7 +284,8 @@
 
           var location = e.latLng.lat().toString() + "," + e.latLng.lng().toString();
           var distance = getCircleRadius() / 1000;
-          twittsCountDiv.textContent = 'tweets: ' + twittCount;
+
+          updateCount(lastTweetCount, twittCount);
           $.ajax({
             type: "POST",
             url: '/ajax/geosearch/',
@@ -403,10 +313,11 @@
                 
                 attachMessage(marker, tweet);
                 twittCount += 1;
-                twittsCountDiv.textContent = 'tweets: ' + twittCount;
+
                 markers.push(marker);
                 markerCluster.addMarker(marker);
               }
+              updateCount(lastTweetCount, twittCount);
             },
             error: function(data) {
               console.log("error: " + data);
@@ -415,9 +326,8 @@
           event.preventDefault();
         });
 
-        $("#clear-btn").click(function() {
+        $("#reset-btn").click(function() {
           markerCluster.removeMarkers(markers);
-          // clearAll();
           reset(map, markerCluster, 2000, 1000);
         });
 
@@ -449,6 +359,7 @@
         }
         markers = [];
         twittCount = 0;
+        lastTweetCount = 0;
       }
       function clearCircle() {
         if (distance_circle != null) {
@@ -494,7 +405,8 @@
               }
             },
             complete: function() {
-              twittsCountDiv.textContent = 'tweets: ' + twittCount;
+              updateCount(lastTweetCount, twittCount);
+              lastTweetCount = twittCount;              
               if (fetching) {
                 if (twittCount < maxtweet) {//we allow at most [maxtweet] tweets to be displayed on map
                   setTimeout(worker, interval);//fecth every [interval] seconds
@@ -506,6 +418,8 @@
             }
           });
         })();
+
+        
       }
     </script>
     <script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js">

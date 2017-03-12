@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+from elasticsearch_wrapper import ElasticsearchWrapper
+import json
+
 class TweetCallback():
     def __init__(self, elasticsearch, collect_freq):
         self.id = 1
@@ -9,7 +12,7 @@ class TweetCallback():
 
     def notify(self, tweet):
         self.tweet_list.append(tweet)
-
+        print len(self.tweet_list)
         if len(self.tweet_list) == self.collect_freq:
             self.save_tweets()
 
@@ -26,10 +29,9 @@ class TweetCallback():
             self.id += 1
             print 'id: %s' % self.id
 
-        print data
         # Upload tweets to elasticsearch
         response = self.elasticsearch.upload(data)
-        print response
+        print 'elasticsearch response: %s' % response
         
         self.clear_tweets()
         self.tweet_list = []

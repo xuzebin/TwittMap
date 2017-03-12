@@ -8,14 +8,14 @@ import tweepy
 
 import json
 
-from tweetsobserver import TweetsObserver
+from tweet_observer import TweetObserver
 
 consumer_key = 'wxKA6I6SNsedU9MIq35GGafN4';
 consumer_secret = 'Nbuc9cHgI3UlTnVGGGaYGEWsbxoziYOrhnXIo5dnBhphurj4Fw';
 access_token = '770112962380042241-txAffaFd4o4NMp9B94WWmZ4CV7HyvhY';
 access_token_secret = 'KQ5s9uPWarXmivPZVOOW8HUXNjHhEm4oMqDnjdw4enSlJ';
 
-observer = TweetsObserver()
+observer = TweetObserver()
 TIMEZONE_OFFSET = datetime.utcnow() - datetime.now()
 
 class StreamWatcherListener(tweepy.StreamListener):
@@ -54,8 +54,6 @@ def register_callback(callback):
     observer.register_callback(callback)
 
 def start_stream():
-
-
     auth = tweepy.auth.OAuthHandler(consumer_key, consumer_secret)
     auth.set_access_token(access_token, access_token_secret)
 
@@ -64,7 +62,7 @@ def start_stream():
     stream.filter(locations=[-180, -90, 180, 90])
 
 def stop_stream():
-    print 'stopping stream'
+    print 'stopping stream...'
     observer.save_tweets()
     global stream
     stream.disconnect()

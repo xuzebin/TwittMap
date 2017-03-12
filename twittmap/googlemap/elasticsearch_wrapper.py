@@ -29,7 +29,7 @@ class ElasticsearchWrapper:
         return response.text
 
     def upload(self, data):
-        print 'uploading'
+        print 'uploading to databse...'
         upload_address = '%s/_bulk' % (self.address)
         response = requests.put(upload_address, data=data)
         return response
@@ -46,13 +46,12 @@ class ElasticsearchWrapper:
 
     def geosearch(self, location, distance):
         data = {
+            "size":100,
             "query": {
                 "bool": {
-#                 "must": {
-#                     "query": {
-#                         "match_all": {}
-#                     }
-#                 },
+                    "must": {
+                        "match_all": {}
+                    },
                     "filter": {
                         "geo_distance": {
                             "distance": '%skm' % (distance),
@@ -66,4 +65,20 @@ class ElasticsearchWrapper:
         response = requests.post(search_address, data=json.dumps(data))
         return response.json()
         
-        
+    def fetch_latest(self, top_n):
+        data = {
+            "query": {
+                "match_all": {}
+            },
+            "size": top_n,
+            "sort": [
+                {
+                    "time": {
+                        "order": "desc"
+                    }
+                }
+            ]
+        }
+        search_address = '%s/_search' % (self.address)
+        response = requests.post(search_address, data=json.dumps(data))
+        return response.json()

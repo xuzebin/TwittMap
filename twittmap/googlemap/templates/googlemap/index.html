@@ -11,7 +11,6 @@
     		height: 100%;
     		margin: 0;
     		padding: 0;
-
   	  }
       #coords, #twitts_count {
         background-color: #fff;
@@ -21,7 +20,10 @@
         margin-left: 5px;
         padding-left: 5px;
         padding-right: 5px;
-        border: 1px solid;
+        /*border: 1px solid;*/
+        box-shadow: 0 0 6px rgba(0, 0, 0, 0.3);
+        border-radius: 2px;
+        border: 1px solid #e6e6e6;
       }
 
       #clear-btn {
@@ -38,14 +40,14 @@
       
       #searchbox {
         background-color: #fff;
-        font-size: 15px;
+        font-size: 14px;
         font-weight: 300;
-        margin-left: 12px;
-        padding: 0 11px 0 13px;
+
+        padding: 3px 13px 3px 13px;
         text-overflow: ellipsis;
-        width: 303px;
+        width: 305px;
         margin-top: 20px;
-        position: absolute;
+        position: relative;
         z-index: 1;
         box-shadow: 0 0 6px rgba(0, 0, 0, 0.3);
       
@@ -65,41 +67,52 @@
         -webkit-border-radius: 2px;
         -moz-border-radius: 2px;
         border-radius: 2px;
+        border: 1px solid #e6e6e6;
         background: #fff;
         color: #666;
-        position: absolute;
+        position: relative;
         padding: 10px;
-        margin-left: 12px;
-        margin-top: 55px;
+
+        margin-top: 5px;
         width: auto;
         z-index: 1;
       }
+
       #distance-options label {
         font-weight: 500;
       }
+      #distance-options #units {
+        padding-left: 18px;
+      }
+
       #distance-options #radiusInput {
           width: 100px;
           padding: 3px;
           position: relative;
       }
+
       #distance-options input {
           -webkit-border-radius: 2px;
           -moz-border-radius: 2px;
           border-radius: 2px;
           border: 1px solid #e6e6e6;
       }
+
       #distance-options #unitSelector {
           font-family: Roboto,Arial,sans-serif;
           position: relative;
-          margin-top: -1px;
       }
+
       select, input[type="color" i][list] {
           background-color: rgb(248, 248, 248);
           border-width: 1px;
           border-style: solid;
           border-color: rgb(166, 166, 166);
       }
-
+      #control-block {
+        position: absolute;
+        margin-left: 12px;
+      }
 
     </style>
   </head>
@@ -109,20 +122,20 @@
     </div>
 <!--     <input id="searchbox" class="controls" type="text" placeholder="Search keyword...">
     <input id="geo-distance-searchbox" class="controls" type="text" placeholder="Enter a distance"> -->
-    <div>  
+    <div id="control-block">  
       <form id="search-form">
-        <input type="text" id="searchbox" placeholder="Search by keyword...", method="POST">
+        <input type="text" id="searchbox" placeholder="Search tweets...", method="POST">
       </form>
       <form id="distance-options">
-        <label for="radiusInput">Radius</label>
+        <label for="radiusInput">Distance</label>
         <input type="number" value="1000" min="0" id="radiusInput" name="radiusInput" autofocus="">
-        <label for="unitSelector">Units</label>
+        <label id="units" for="unitSelector">Units</label>
         <select id="unitSelector" name="unitSelector">
               <option value="km">Kilometers</option>
               <option value="m">Meters</option>
               <!-- <option value="mi">Miles</option> -->
           </select>
-          <p>Click to place a circle on map</p>
+          <p>Click to show tweets on the map within a distance</p>
       </form>
     </div>
 <!--     <div class="search-container">
@@ -179,12 +192,13 @@
       var map;
       var twittCount = 0
       var markers = [];
-      var search_activated = false;
+      // var search_activated = false;
+      var fetching = true;
 
       var distance_circle;
 
       var circle_radius = 1000000;//unit: meter
-
+      var twittsCountDiv = document.getElementById('twitts_count');
 
       function initMap() {
 
@@ -207,7 +221,7 @@
         map.setOptions(opt);
 
 
-        var twittsCountDiv = document.getElementById('twitts_count');
+        // var twittsCountDiv = document.getElementById('twitts_count');
         map.controls[google.maps.ControlPosition.LEFT_CENTER].push(twittsCountDiv);
 
         // // Create the search box and link it to the UI element.
@@ -224,53 +238,56 @@
         var markerCluster = new MarkerClusterer(map, markers,
          {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
 
-        (function worker() {
-          $.ajax({
-            url: '/ajax/update_tweets/', 
-            success: function(data) {
-              twittCount += data.length;
-              var locs = data;
-              for (var i = 0; i < locs.length; i++) {
-                var lat = locs[i]["location"]["lat"];
-                var lon = locs[i]["location"]["lon"];
+        // (function worker() {
+        //   $.ajax({
+        //     url: '/ajax/update_tweets/', 
+        //     success: function(data) {
+        //       twittCount += data.length;
+        //       var locs = data;
+        //       for (var i = 0; i < locs.length; i++) {
 
-                var latLng = new google.maps.LatLng(lat, lon);
-                var marker = new google.maps.Marker({
-                  position: latLng,
-                  map: map,
-                  draggable: false,
-                  animation: google.maps.Animation.DROP,
+        //         var lat = locs[i]["_source"]["location"]["lat"];
+        //         var lon = locs[i]["_source"]["location"]["lon"];
 
-                });
-                attachMessage(marker, locs[i]);
-                markers.push(marker);
-                markerCluster.addMarker(marker, true);
-              }
-            },
-            complete: function() {
-              // Schedule the next request when the current one's complete
-              twittsCountDiv.textContent = 'tweets: ' + twittCount;
-              // If search operation is not activated, keep displaying real time streaming tweets.
-              // Otherwise display only the search result (while server keeps streaming real time to elasticsearch database)
-              console.log("test from worker");
-              if (!search_activated) {
-                if (twittCount < 100) {//we allow at most 1000 tweets to be displayed on map
-                  setTimeout(worker, 2000);
-                } else {
-                  // Stop tweets streaming in server
-                  stopStreamingTweets();
-                } 
-              }      
-            }
-          });
-        })();
+        //         var latLng = new google.maps.LatLng(lat, lon);
+        //         var marker = new google.maps.Marker({
+        //           position: latLng,
+        //           map: map,
+        //           draggable: false,
+        //           animation: google.maps.Animation.DROP,
+
+        //         });
+        //         attachMessage(marker, locs[i]);
+        //         markers.push(marker);
+        //         markerCluster.addMarker(marker, true);
+        //       }
+        //     },
+        //     complete: function() {
+        //       // Schedule the next request when the current one's complete
+        //       twittsCountDiv.textContent = 'tweets: ' + twittCount;
+        //       // If search operation is not activated, keep displaying real time streaming tweets.
+        //       // Otherwise display only the search result (while server keeps streaming real time to elasticsearch database)
+        //       console.log("test from worker");
+        //       if (!search_activated) {
+        //         if (twittCount < 100) {//we allow at most 1000 tweets to be displayed on map
+        //           setTimeout(worker, 2000);
+        //         } else {
+        //           // Stop tweets streaming in server
+        //           stopStreamingTweets();
+        //         } 
+        //       }      
+        //     }
+        //   });
+        // })();
+        startFetchingTweets(map, markerCluster, 2000, 1000);
 
         twittsCountDiv.textContent = 'tweets: ' + twittCount;
 
 
         $("#search-form").submit(function(event) {
           event.preventDefault();
-          search_activated = true;
+          // search_activated = true;
+          fetching = false;
           markerCluster.removeMarkers(markers);
           // clearMarkers();
           clearAll();
@@ -335,7 +352,8 @@
 
         //Geo distance search by clicking a point on the map
         map.addListener('click', function(e) {
-          search_activated = true;
+          // search_activated = true;
+          fetching = false;
           markerCluster.removeMarkers(markers);
           clearMarkers();
           //Draw a circle at the clicked point
@@ -399,7 +417,8 @@
 
         $("#clear-btn").click(function() {
           markerCluster.removeMarkers(markers);
-          clearAll();
+          // clearAll();
+          reset(map, markerCluster, 2000, 1000);
         });
 
       }
@@ -407,7 +426,7 @@
       function attachMessage(marker, message) {
           console.log(message["text"]);
           contentStr = '<div>' + '<p><b>' + message["name"] + '</b>' + '<div>' + message["time"] + '</div>'
-          + '<p>' + message["text"] + '</p>' + '</div>';
+          + '<hr><p>' + message["text"] + '</p>' + '</div>';
           var infowindow = new google.maps.InfoWindow({
             content: contentStr,
             maxWidth: 200
@@ -415,6 +434,10 @@
           marker.addListener('click', function() {
             infowindow.open(marker.get('map'), marker);
           });
+      }
+      function reset(map, markerCluster, interval, maxtweet) {
+        clearAll();
+        startFetchingTweets(map, markerCluster, interval, maxtweet);
       }
       function clearAll() {
         clearMarkers();
@@ -443,6 +466,46 @@
       }
       function getCircleRadius() {
         return circle_radius;
+      }
+      function startFetchingTweets(map, markerCluster, interval, maxtweet) {
+        fetching = true;
+        (function worker() {
+          $.ajax({
+            url: '/ajax/update_tweets/', 
+            success: function(data) {
+              twittCount += data.length;
+              var locs = data;
+              for (var i = 0; i < locs.length; i++) {
+
+                var lat = locs[i]["_source"]["location"]["lat"];
+                var lon = locs[i]["_source"]["location"]["lon"];
+
+                var latLng = new google.maps.LatLng(lat, lon);
+                var marker = new google.maps.Marker({
+                  position: latLng,
+                  map: map,
+                  draggable: false,
+                  animation: google.maps.Animation.DROP,
+
+                });
+                attachMessage(marker, locs[i]["_source"]);
+                markers.push(marker);
+                markerCluster.addMarker(marker, true);
+              }
+            },
+            complete: function() {
+              twittsCountDiv.textContent = 'tweets: ' + twittCount;
+              if (fetching) {
+                if (twittCount < maxtweet) {//we allow at most [maxtweet] tweets to be displayed on map
+                  setTimeout(worker, interval);//fecth every [interval] seconds
+                } else {
+                  // Stop tweets streaming in server
+                  stopStreamingTweets();
+                } 
+              }      
+            }
+          });
+        })();
       }
     </script>
     <script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js">

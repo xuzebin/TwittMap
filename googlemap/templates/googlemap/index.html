@@ -311,7 +311,7 @@
         var markerCluster = new MarkerClusterer(map, markers,
          {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
 
-        startFetchingTweets(map, markerCluster, 5000, 5000);
+        startFetchingTweets(map, markerCluster, 5000, 50000);
 
         updateCount(lastTweetCount, twittCount);
 
@@ -350,7 +350,7 @@
                   position: latLng,
                   map: map,
                   draggable: false,
-                  animation: google.maps.Animation.DROP,
+                  // animation: google.maps.Animation.DROP,
                 });
                 
                 attachMessage(marker, tweet);
@@ -434,7 +434,7 @@
                   position: latLng,
                   map: map,
                   draggable: false,
-                  animation: google.maps.Animation.DROP,
+                  // animation: google.maps.Animation.DROP,
                 });
                 
                 attachMessage(marker, tweet);
@@ -454,7 +454,7 @@
 
         $("#reset-btn").click(function() {
           markerCluster.removeMarkers(markers);
-          reset(map, markerCluster, 2000, 1000);
+          reset(map, markerCluster, 5000, 50000);
         });
 
       }
@@ -514,6 +514,7 @@
       }
       function startFetchingTweets(map, markerCluster, interval, maxtweet) {
         fetching = true;
+        firstFetch(map, markerCluster);
         (function worker() {
           $.ajax({
             url: '/ajax/update_tweets/', 
@@ -532,7 +533,7 @@
                   position: latLng,
                   map: map,
                   draggable: false,
-                  animation: google.maps.Animation.DROP,
+                  // animation: google.maps.Animation.DROP,
 
                 });
                 attachMessage(marker, locs[i]["_source"]);
@@ -548,14 +549,39 @@
                   setTimeout(worker, interval);//fecth every [interval] seconds
                 } else {
                   // Stop tweets streaming in server
-                  stopStreamingTweets();
+                  // stopStreamingTweets();
                 } 
               }      
             }
           });
         })();
+      }
+      function firstFetch(map, markerCluster) {
+        $.ajax({
+          url: '/ajax/first_fetch/',
+          success: function(data) {
+            twittCount += data.length;
+            var locs = data;
+            for (var i = 0; i < locs.length; i++) {             
+              var lat = locs[i]["_source"]["location"]["lat"];
+              var lon = locs[i]["_source"]["location"]["lon"];
 
-        
+              var latLng = new google.maps.LatLng(lat, lon);
+              var marker = new google.maps.Marker({
+                position: latLng,
+                map: map,
+                draggable: false,
+              });
+              attachMessage(marker, locs[i]["_source"]);
+              markers.push(marker);
+              markerCluster.addMarker(marker, true);
+            }
+          },
+          complete: function() {
+            updateCount(lastTweetCount, twittCount);
+            lastTweetCount = twittCount;              
+          }
+        });
       }
     </script>
 

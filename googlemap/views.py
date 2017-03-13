@@ -18,6 +18,16 @@ stream_thread.start_thread()
 def index(request):
     return render(request, 'googlemap/index.html')
 
+def first_fetch(request):
+    print 'first_fetch'
+    response = es.fetch_latest(1000)
+
+    response = response['hits']['hits']
+    response = json.dumps(response)
+
+    return HttpResponse(response, content_type='application/json')
+
+
 def update_tweets(request):
     print 'update_tweets'
     response = es.fetch_latest(10)
@@ -29,7 +39,7 @@ def update_tweets(request):
 
 def stop_tweets(request):
     print 'stop_tweets'
-    tweet_streamer.stop_stream()# stop the stream
+#    tweet_streamer.stop_stream()# stop the stream
     return HttpResponse()
 
 def search(request):
@@ -48,7 +58,7 @@ def geosearch(request):
     distance = request.POST.get('distance')
     print 'location: %s, radius: %s' % (location, distance)
 
-    response = es.geosearch(location, distance, 2000)# search at most 1000 latest tweets
+    response = es.geosearch(location, distance, 2000)# search at most 2000 tweets
     print 'geosearch response: %s' % response
     response = response['hits']['hits']
     response = json.dumps(response)

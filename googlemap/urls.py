@@ -8,4 +8,5 @@ urlpatterns = [
     url(r'^ajax/stop_tweets', views.stop_tweets, name='stop_tweets'),
     url(r'^ajax/search', views.search, name='search'),
     url(r'^ajax/geosearch', views.geosearch, name='geosearch'),
+    url(r'^ajax/first_fetch', views.first_fetch, name='first_fetch')
 ]

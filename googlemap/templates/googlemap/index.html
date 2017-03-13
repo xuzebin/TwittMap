@@ -17,10 +17,9 @@
         color: rgb(25, 25, 25);
         font-size: 'Roboto,Arial,sans-serif';
         font-size: 16px;
-        margin-left: 5px;
+        margin-bottom: 20px;
         padding-left: 5px;
         padding-right: 5px;
-        /*border: 1px solid;*/
         box-shadow: 0 0 6px rgba(0, 0, 0, 0.3);
         border-radius: 2px;
         border: 1px solid #e6e6e6;
@@ -30,10 +29,11 @@
         position: absolute;
         margin: auto;
         display: inline-block;
-        margin-top: 20px;
+        left: 48%
       }
-      .mid-btn {
+      .mid-control {
         text-align: center;
+        top: 20px;
         z-index: 1;
         position: relative;
       }
@@ -71,7 +71,7 @@
         background: #fff;
         color: #666;
         position: relative;
-        padding: 10px;
+        padding: 10px 10px 1px 10px;
 
         margin-top: 5px;
         width: auto;
@@ -83,9 +83,20 @@
       }
       #distance-options #units {
         padding-left: 18px;
+        display: inline-block;
       }
 
-      #distance-options #radiusInput {
+      #distance-options #locate-control {
+        text-align: center;
+        margin: 7px;
+        position: relative;
+      }
+      #locate-control input {
+        margin-left: 15px;
+      }
+
+
+      #distance-options #radius-input {
           width: 100px;
           padding: 3px;
           position: relative;
@@ -98,9 +109,13 @@
           border: 1px solid #e6e6e6;
       }
 
-      #distance-options #unitSelector {
+      #distance-options #unit-selector {
           font-family: Roboto,Arial,sans-serif;
           position: relative;
+
+      }
+      #unit-selector label {
+        margin: 3px;
       }
 
       select, input[type="color" i][list] {
@@ -113,38 +128,125 @@
         position: absolute;
         margin-left: 12px;
       }
+      #user-name {
+        margin-top: 10px;
+        font-weight: bold;
+        font-size: 15px;
+      }
+      #user-name a:hover {
+        text-decoration: underline;
+        color: #01579b;
+      }
+      #post-time {
+        font-size: 12px;
+      }
+      .panel-default {
+        width: 200px;
+      }
 
+      @-webkit-keyframes ld {
+        0%   { transform: rotate(0deg) scale(1); }
+        50%  { transform: rotate(180deg) scale(1.1); }
+        100% { transform: rotate(360deg) scale(1); }
+      }
+      @-moz-keyframes ld {
+        0%   { transform: rotate(0deg) scale(1); }
+        50%  { transform: rotate(180deg) scale(1.1); }
+        100% { transform: rotate(360deg) scale(1); }
+      }
+      @-o-keyframes ld {
+        0%   { transform: rotate(0deg) scale(1); }
+        50%  { transform: rotate(180deg) scale(1.1); }
+        100% { transform: rotate(360deg) scale(1); }
+      }
+      @keyframes ld {
+        0%   { transform: rotate(0deg) scale(1); }
+        50%  { transform: rotate(180deg) scale(1.1); }
+        100% { transform: rotate(360deg) scale(1); }
+      }
+
+      .m-progress {
+          position: relative;
+          opacity: .8;
+          color: transparent !important;
+          text-shadow: none !important;
+      }
+      .m-progress:hover,
+      .m-progress:active,
+      .m-progress:focus {
+          cursor: default;
+          color: transparent;
+          outline: none !important;
+          box-shadow: none;
+      }
+      .m-progress:before {
+          content: '';
+          
+          display: inline-block;
+          
+          position: absolute;
+          background: transparent;
+          border: 1px solid #fff;
+          border-top-color: transparent;
+          border-bottom-color: transparent;
+          border-radius: 50%;
+          
+          box-sizing: border-box;
+          
+          top: 50%;
+          left: 50%;
+          margin-top: -12px;
+          margin-left: -12px;
+          
+          width: 24px;
+          height: 24px;
+          
+          -webkit-animation: ld 1s ease-in-out infinite;
+          -moz-animation:    ld 1s ease-in-out infinite;
+          -o-animation:      ld 1s ease-in-out infinite;
+          animation:         ld 1s ease-in-out infinite;
+      }
     </style>
   </head>
   <body>
-    <div class="mid-btn">
+    <div class="mid-control">
       <button type="button" id="reset-btn" class="btn btn-success">Reset</button>
     </div>
     <div id="control-block">  
       <form id="search-form">
         <input type="text" id="searchbox" placeholder="Search tweets...", method="POST">
       </form>
-      <form id="distance-options">
-        <label for="radiusInput">Distance</label>
-        <input type="number" value="1000" min="0" id="radiusInput" name="radiusInput" autofocus="">
-        <label id="units" for="unitSelector">Units</label>
-        <select id="unitSelector" name="unitSelector">
-              <option value="km">Kilometers</option>
-              <option value="m">Meters</option>
-          </select>
-          <p>Click to show tweets on the map within a distance</p>
-      </form>
+      
+      <div id="distance-options">
+        <div>
+          <label for="radiusInput">Distance</label>
+          <input type="number" value="1000" min="0" id="radius-input" name="radiusInput" autofocus="">
+          <div id="units">
+            <select id="unit-selector" name="unitSelector">
+                  <option value="km">Kilometers</option>
+                  <option value="m">Meters</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="locate-control">
+          <button id="locate-btn" type="button" class="btn btn-primary btn-sm" data-toggle="tooltip" title="Click to show tweets on the map within a distance">
+            <span class="glyphicon glyphicon-map-marker"></span> Geosearch
+          </button>
+        </div>
+      </div>
+
     </div>
     
     <div id="map"></div>
     <div id="twitts_count" class="count"></div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 
     <script>
       var map;
       var twittCount = 0
       var lastTweetCount = 0
       var markers = [];
-      // var search_activated = false;
       var fetching = true;
 
       var distance_circle;
@@ -152,12 +254,31 @@
       var circle_radius = 1000000;//unit: meter
       var twittsCountDiv = document.getElementById('twitts_count');
 
+      var geosearch_enabled = false;
+
+
+      $(document).ready(function(){
+        $('[data-toggle="tooltip"]').tooltip(); 
+
+        $('#locate-btn').click(function() {
+          if ($('#locate-btn').hasClass("m-progress")) {
+            $('#locate-btn').removeClass("m-progress");
+            geosearch_enabled = false;
+            clearCircle();            
+          } else {
+            $('#locate-btn').addClass("m-progress");
+            geosearch_enabled = true;
+          }
+          
+
+        });          
+      });
 
       function updateCount(last, cur) {
         $('.count').each(function () {
           var $this = $(this);
           jQuery({ Counter: last }).animate({ Counter: cur }, {
-            duration: 1000,
+            duration: 2000,
             easing: 'swing',
             step: function () {
               $this.text("Tweets: " + Math.ceil(this.Counter));
@@ -166,6 +287,7 @@
         });
       }
 
+
       function initMap() {
 
         map = new google.maps.Map(document.getElementById('map'), {
@@ -173,7 +295,7 @@
           center: new google.maps.LatLng(2.8,-187.3),
           zoomControl: true,
           zoomControlOptions: {
-            position: google.maps.ControlPosition.RIGHT_CENTER
+            position: google.maps.ControlPosition.LEFT_CENTER
           },
           mapTypeControl: false,
           streetViewControl: false,
@@ -183,8 +305,7 @@
         map.setOptions(opt);
 
 
-        // var twittsCountDiv = document.getElementById('twitts_count');
-        map.controls[google.maps.ControlPosition.LEFT_CENTER].push(twittsCountDiv);
+        map.controls[google.maps.ControlPosition.BOTTOM_CENTER].push(twittsCountDiv);
 
         // Add a marker clusterer to manage the markers.
         var markerCluster = new MarkerClusterer(map, markers,
@@ -212,6 +333,7 @@
             data: {keyword, csrfmiddlewaretoken: '{{ csrf_token }}'},
             dataType: "json",
             success: function(data) {
+
               for (var i in data) {
                 var tweet = data[i]["_source"];
                 if (tweet == null) {
@@ -246,44 +368,48 @@
 
         });
 
-        $("#distance-options").change(function() {
-          var distance = $("#radiusInput").val();
-          var selected = $("#unitSelector").find(":selected").val();
+        $("#distance-options").on('input', function() {
+          var distance = $("#radius-input").val();
+          var unit = $("#unit-selector").find(":selected").val();
+          console.log(unit);
 
           distance = distance < 0 ? 0 : distance;
-          distance = selected == "km" ? distance * 1000 : distance;
+          distance = (unit == "km") ? distance * 1000 : distance;
           updateCircleRadius(distance);
-          distance_circle.setRadius(distance);
+          distance_circle.setRadius(parseFloat(distance));
         });
+
         $("#distance-options").submit(function(e) {
           e.preventDefault();
         });
 
 
-        //Geo distance search by clicking a point on the map
+        distance_circle = new google.maps.Circle({
+          strokeColor: '#FF0000',
+          strokeOpacity: 0.8,
+          strokeWeight: 2,
+          fillColor: '#FF0000',
+          fillOpacity: 0.35,
+          map: map,
+          center: new google.maps.LatLng(0, 0),
+          radius: circle_radius
+        });
+        distance_circle.setVisible(false);
+
+        //Geo distance search by clicking a point on the map        
         map.addListener('click', function(e) {
+          if (!geosearch_enabled) {
+            return;
+          }
           fetching = false;
           markerCluster.removeMarkers(markers);
           clearMarkers();
-          //Draw a circle at the clicked point
-          if (distance_circle == null) {
-            distance_circle = new google.maps.Circle({
-              strokeColor: '#FF0000',
-              strokeOpacity: 0.8,
-              strokeWeight: 2,
-              fillColor: '#FF0000',
-              fillOpacity: 0.35,
-              map: map,
-              center: e.latLng,
-              radius: circle_radius
-            });
-          } else {
-            distance_circle.setCenter(e.latLng);
-          }
 
+          distance_circle.setCenter(e.latLng);
+          distance_circle.setVisible(true);
 
           var location = e.latLng.lat().toString() + "," + e.latLng.lng().toString();
-          var distance = getCircleRadius() / 1000;
+          var distance = getCircleRadius() / 1000;//convert m to km
 
           updateCount(lastTweetCount, twittCount);
           $.ajax({
@@ -334,12 +460,23 @@
       }
 
       function attachMessage(marker, message) {
-          console.log(message["text"]);
-          contentStr = '<div>' + '<p><b>' + message["name"] + '</b>' + '<div>' + message["time"] + '</div>'
-          + '<hr><p>' + message["text"] + '</p>' + '</div>';
+          var profile_url = "https://twitter.com/" + message.name;
+          contentStr = '<div class="panel panel-default">' + 
+                         '<div class="panel-heading">' + 
+                            '<img class="img-thumbnail" alt="Cinque Terre" src="' + message.profile_image_url + '">' + 
+                            '<div id="user-name"><a target="_blank" href="' + profile_url + '"' + '<b>' + message.name +
+                             '</b>' + '</a></div>' +
+                              '<div id="post-time">' + message.time + '</div>' + 
+                          '</div>' +
+                          '<div class="panel-body">' + 
+                            '<p>' + message.text + '</p>' + 
+                          '</div>' + 
+                        '</div>';
+
+          
           var infowindow = new google.maps.InfoWindow({
             content: contentStr,
-            maxWidth: 200
+            // maxWidth: 200
           });
           marker.addListener('click', function() {
             infowindow.open(marker.get('map'), marker);
@@ -362,10 +499,7 @@
         lastTweetCount = 0;
       }
       function clearCircle() {
-        if (distance_circle != null) {
-          distance_circle.setMap(null);
-          distance_circle = null;
-        }
+        distance_circle.setVisible(false);          
       }
       function stopStreamingTweets() {
         $.ajax({
@@ -384,10 +518,12 @@
           $.ajax({
             url: '/ajax/update_tweets/', 
             success: function(data) {
+              if (!fetching) {
+                return;
+              }
               twittCount += data.length;
               var locs = data;
-              for (var i = 0; i < locs.length; i++) {
-
+              for (var i = 0; i < locs.length; i++) {                
                 var lat = locs[i]["_source"]["location"]["lat"];
                 var lon = locs[i]["_source"]["location"]["lon"];
 
@@ -422,15 +558,15 @@
         
       }
     </script>
+
     <script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js">
     </script>
     <script async defer
    	  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyADVvnA5fYL4ecja-sl3JC0JraDFaU2iRE&callback=initMap">
     </script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js">
-    </script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
   </body>
 </html>
 

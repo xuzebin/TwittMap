@@ -23,7 +23,8 @@ class TweetStreamListener(tweepy.StreamListener):
                     'name': status.author.screen_name,
                     'time': local_created_time.strftime("%Y/%m/%d %H:%M:%S"),
                     'location': {'lat': coords[1], 'lon': coords[0]},
-                    'text': status.text
+                    'text': status.text,
+                    'profile_image_url': status.author.profile_image_url
                 }
                 observer.flush_tweet(tweet)
 

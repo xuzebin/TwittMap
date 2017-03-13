@@ -26,6 +26,7 @@ SECRET_KEY = ')4e4%mbv9af7(8oasjk8l2qqn=378h6ec3i*_w_8(@#3f30y_k'
 DEBUG = True
 
 ALLOWED_HOSTS = [
+    '127.0.0.1',
     'twittmap-env.f2xpr2cnnc.us-east-1.elasticbeanstalk.com'
 ]
 

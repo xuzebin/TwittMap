@@ -25,11 +25,13 @@ class ElasticsearchWrapper:
                         "name": { "type" : "text" },
                         "time": { "type": "date", "format": "yyyy/MM/dd HH:mm:ss"},
                         "location": { "type": "geo_point"},
-                        "text": { "type": "text"}
+                        "text": { "type": "text"},
+                        "profile_image_url": { "type": "text" }
                     }
                 }
             }
         }
+        print data
         response = requests.put(self.address, data=json.dumps(data))
         return response.text
 
@@ -42,17 +44,19 @@ class ElasticsearchWrapper:
 
     def search(self, keyword):
         data = {
+            "size": 2000,
             "query": {
                 "query_string": { "query": keyword }
             }
         }
         search_address = '%s/_search' % (self.address)
         response = requests.post(search_address, data=json.dumps(data))
+
         return response.json()
 
-    def geosearch(self, location, distance):
+    def geosearch(self, location, distance, size):
         data = {
-            "size":100,
+            "size": size,
             "query": {
                 "bool": {
                     "must": {
@@ -88,3 +92,8 @@ class ElasticsearchWrapper:
         search_address = '%s/_search' % (self.address)
         response = requests.post(search_address, data=json.dumps(data))
         return response.json()
+
+
+# es = ElasticsearchWrapper()
+# res = es.create_index()
+# print res

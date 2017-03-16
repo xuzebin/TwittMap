@@ -1,9 +1,5 @@
-#!/usr/bin/env python
-
 from . import tweet_streamer
 from tweet_callback import TweetCallback
-
-import threading
 
 class TweetStreamThread:
 

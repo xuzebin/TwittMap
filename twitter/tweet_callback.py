@@ -1,6 +1,5 @@
-#!/usr/bin/env python
-
 from elasticsearch_wrapper import ElasticsearchWrapper
+
 import json
 
 class TweetCallback():

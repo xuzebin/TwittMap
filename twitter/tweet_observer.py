@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 class TweetObserver:
     def __init__(self):
         self.callback = None

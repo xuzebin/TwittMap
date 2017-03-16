@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 
-from . import tweet_streamer
+from twitter import tweet_streamer
 
 import time
 import json

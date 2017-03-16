@@ -10,15 +10,9 @@ class TweetStreamThread:
     def __init__(self, callback):
         self.callback = callback
 
-    def stream_thread(self):
+    def start_streaming(self):
+        print 'start streaming'
         tweet_streamer.register_callback(self.callback)
         tweet_streamer.start_stream()
-
-    def start_thread(self):
-        print 'thread started'
-        # Create a thread for tweets streaming
-        t = threading.Thread(target=self.stream_thread);
-        t.setDaemon(True)
-        t.start()
-
+        
 

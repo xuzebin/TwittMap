@@ -6,14 +6,9 @@ from . import tweet_streamer
 import time
 import json
 
-from elasticsearch_wrapper import ElasticsearchWrapper
-from tweet_callback import TweetCallback
-from tweet_stream_thread import TweetStreamThread
+from elasticsearch.elasticsearch_wrapper import ElasticsearchWrapper
 
 es = ElasticsearchWrapper()
-
-stream_thread = TweetStreamThread(TweetCallback(es, 5))
-stream_thread.start_thread()
 
 def index(request):
     return render(request, 'googlemap/index.html')

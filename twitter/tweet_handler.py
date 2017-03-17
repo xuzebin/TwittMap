@@ -1,4 +1,4 @@
-from elasticsearch_wrapper import ElasticsearchWrapper
+from elasticsearch.elasticsearch_wrapper import ElasticsearchWrapper
 
 import json
 

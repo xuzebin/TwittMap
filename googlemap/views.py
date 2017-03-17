@@ -34,7 +34,7 @@ def update_tweets(request):
 
 def stop_tweets(request):
     print 'stop_tweets'
-#    tweet_streamer.stop_stream()# stop the stream
+    # Currently we don't stop streaming
     return HttpResponse()
 
 def search(request):

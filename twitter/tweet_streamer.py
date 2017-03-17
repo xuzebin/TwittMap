@@ -5,22 +5,19 @@ import json
 from getpass import getpass
 from datetime import datetime
 from ConfigParser import ConfigParser
-from tweet_observer import TweetObserver
-
-
-TIMEZONE_OFFSET = datetime.utcnow() - datetime.now()
 
 class TweetStreamListener(tweepy.StreamListener):
 
-    def __init__(self, observer):
+    def __init__(self, tweet_handler):
         tweepy.StreamListener.__init__(self)
-        self.observer = observer
-    
+        self.tweet_handler = tweet_handler
+        self.TIMEZONE_OFFSET = datetime.utcnow() - datetime.now()
+
     def on_status(self, status):
         try:
             coords = status.coordinates["coordinates"]
             if coords is not None:
-                local_created_time = status.created_at - TIMEZONE_OFFSET;
+                local_created_time = status.created_at - self.TIMEZONE_OFFSET;
                 tweet = {
                     'name': status.author.screen_name,
                     'time': local_created_time.strftime("%Y/%m/%d %H:%M:%S"),
@@ -28,7 +25,7 @@ class TweetStreamListener(tweepy.StreamListener):
                     'text': status.text,
                     'profile_image_url': status.author.profile_image_url
                 }
-                self.observer.flush_tweet(tweet)
+                self.tweet_handler.on_tweet(tweet)
                 return True
 
         except:
@@ -41,42 +38,47 @@ class TweetStreamListener(tweepy.StreamListener):
         return True  # keep stream alive
 
     def on_timeout(self):
-        print 'TweetStreamListener: timeout...'
+        print '[%s] timeout...' % (self.__class__.__name__)
 
     def on_connect(self):
-        print 'TweetStreamListener: connect...'
+        print '[%s] connect...' % (self.__class__.__name__)
 
     def on_exception(self, exception):
-        print 'TweetStreamListener: exception... %s' % exception
+        print '[%s] exception... %s' % (self.__class__.__name__, exception)
 
     def on_disconnect(self, notice):
-        print 'TweetStreamListener: disconnect... %s' % notice
+        print '[%s] disconnect... %s' % (self.__class__.__name__, notice)
 
     def on_warning(self, notice):
-        print 'TweetStreamListener: warning... %s' % notice
+        print '[%s] warning... %s' % (self.__class__.__name__, notice)
 
 
 class TweetStreamer:
 
     def __init__(self):
         self.stream = None
-        self.observer = TweetObserver()
+        self.tweet_handler = None
 
-    def register_callback(self, callback):
-        self.observer.register_callback(callback)
+    def set_handler(self, handler):
+        self.tweet_handler = handler
 
     def start_stream(self):
+        print '[%s] starting stream...' % (self.__class__.__name__)
         consumer_key, consumer_secret, access_token, access_token_secret = self._read_config('setup.cfg')
 
         auth = tweepy.auth.OAuthHandler(consumer_key, consumer_secret)
         auth.set_access_token(access_token, access_token_secret)
 
-        self.stream = tweepy.Stream(auth, TweetStreamListener(self.observer), timeout=None)
+        if self.tweet_handler is None:
+            raise TypeError("tweet_handler not set!")
+
+        self.stream = tweepy.Stream(auth, TweetStreamListener(self.tweet_handler), timeout=None)
         self.stream.filter(locations=[-180, -90, 180, 90])
 
     def stop_stream(self):
-        print 'stopping stream...'
-        self.observer.save_tweets()
+        print '[%s] stopping stream...' % (self.__class__.__name__)
+        if tweet_handler is not None:
+            self.tweet_handler.save_tweets()
         self.stream.disconnect()
 
     def _read_config(self, config_file):

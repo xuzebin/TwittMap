@@ -31,15 +31,12 @@ class ElasticsearchWrapper:
                 }
             }
         }
-        print data
         response = requests.put(self.address, data=json.dumps(data))
         return response.text
 
     def upload(self, data):
-        print 'uploading to databse...'
         upload_address = '%s/_bulk' % (self.address)
         response = requests.put(upload_address, data=data)
-        print 'upload success'
         return response
 
     def search(self, keyword):

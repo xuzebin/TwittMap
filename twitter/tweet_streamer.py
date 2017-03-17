@@ -7,11 +7,15 @@ from datetime import datetime
 from ConfigParser import ConfigParser
 from tweet_observer import TweetObserver
 
-observer = TweetObserver()
+
 TIMEZONE_OFFSET = datetime.utcnow() - datetime.now()
 
 class TweetStreamListener(tweepy.StreamListener):
 
+    def __init__(self, observer):
+        tweepy.StreamListener.__init__(self)
+        self.observer = observer
+    
     def on_status(self, status):
         try:
             coords = status.coordinates["coordinates"]
@@ -24,8 +28,7 @@ class TweetStreamListener(tweepy.StreamListener):
                     'text': status.text,
                     'profile_image_url': status.author.profile_image_url
                 }
-                observer.flush_tweet(tweet)
-
+                self.observer.flush_tweet(tweet)
                 return True
 
         except:
@@ -34,40 +37,57 @@ class TweetStreamListener(tweepy.StreamListener):
             pass
 
     def on_error(self, status_code):
-        print 'An error has occured! Status code = %s' % status_code
+        print 'TweetStreamListener: An error has occured! Status code = %s' % status_code
         return True  # keep stream alive
 
     def on_timeout(self):
-        print 'Snoozing Zzzzzz'
+        print 'TweetStreamListener: timeout...'
+
+    def on_connect(self):
+        print 'TweetStreamListener: connect...'
+
+    def on_exception(self, exception):
+        print 'TweetStreamListener: exception... %s' % exception
+
+    def on_disconnect(self, notice):
+        print 'TweetStreamListener: disconnect... %s' % notice
+
+    def on_warning(self, notice):
+        print 'TweetStreamListener: warning... %s' % notice
 
 
-def register_callback(callback):
-    observer.register_callback(callback)
+class TweetStreamer:
 
-def start_stream():
-    consumer_key, consumer_secret, access_token, access_token_secret = read_config('setup.cfg')
+    def __init__(self):
+        self.stream = None
+        self.observer = TweetObserver()
 
-    auth = tweepy.auth.OAuthHandler(consumer_key, consumer_secret)
-    auth.set_access_token(access_token, access_token_secret)
+    def register_callback(self, callback):
+        self.observer.register_callback(callback)
 
-    global stream
-    stream = tweepy.Stream(auth, TweetStreamListener(), timeout=None)
-    stream.filter(locations=[-180, -90, 180, 90])
+    def start_stream(self):
+        consumer_key, consumer_secret, access_token, access_token_secret = self._read_config('setup.cfg')
 
-def stop_stream():
-    print 'stopping stream...'
-    observer.save_tweets()
-    global stream
-    stream.disconnect()
+        auth = tweepy.auth.OAuthHandler(consumer_key, consumer_secret)
+        auth.set_access_token(access_token, access_token_secret)
 
-def read_config(config_file):
-    config = ConfigParser()
-    config.read(config_file)
+        self.stream = tweepy.Stream(auth, TweetStreamListener(self.observer), timeout=None)
+        self.stream.filter(locations=[-180, -90, 180, 90])
 
-    consumer_key = config.get('TweetStreaming', 'consumer_key')
-    consumer_secret = config.get('TweetStreaming', 'consumer_secret')
-    access_token = config.get('TweetStreaming', 'access_token')
-    access_token_secret = config.get('TweetStreaming', 'access_token_secret')
+    def stop_stream(self):
+        print 'stopping stream...'
+        self.observer.save_tweets()
+        self.stream.disconnect()
 
-    return (consumer_key, consumer_secret, access_token, access_token_secret)
+    def _read_config(self, config_file):
+        config = ConfigParser()
+        config.read(config_file)
+
+        consumer_key = config.get('TweetStreaming', 'consumer_key')
+        consumer_secret = config.get('TweetStreaming', 'consumer_secret')
+        access_token = config.get('TweetStreaming', 'access_token')
+        access_token_secret = config.get('TweetStreaming', 'access_token_secret')
+
+        return (consumer_key, consumer_secret, access_token, access_token_secret)
+
 

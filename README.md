@@ -39,6 +39,5 @@ aws es describe-elasticsearch-domain --domain <DOMAIN_NAME_OF_YOUR_CHOICE>
 - Sign up for [Twitter Streaming APIs](https://dev.twitter.com/streaming/overview) and fill the keys and tokens in [setup.cfg](https://github.com/xuzebin/TwittMap/blob/master/setup.cfg)
 - Download and install [Elasticsearch](https://www.elastic.co/downloads/elasticsearch)
 - Run `bin/elasticsearch` (or `bin\elasticsearch.bat` on Windows) in your terminal to start the search engine.
-- Run `python elasticsearch/start.py` in another terminal to start streaming and uploading tweets to elasticsearch.
 - Run `python manager runserver` in another terminal to start the server.
 - Open your browser and type `127.0.0.1:8000`. Done!

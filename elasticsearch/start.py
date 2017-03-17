@@ -1,11 +1,13 @@
 #!/usr/bin/env python
-# Upload streaming data to elasticsearch database
 
 from elasticsearch_wrapper import ElasticsearchWrapper
 from twitter.tweet_handler import TweetHandler
 from twitter.tweet_streamer import TweetStreamer
 
 if __name__ == "__main__":
+    """
+    Start the process for fetching twitter streaming data and uploading to elasticsearch
+    """
     es = ElasticsearchWrapper()
 
     streamer = TweetStreamer()

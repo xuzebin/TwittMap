@@ -7,13 +7,25 @@ from datetime import datetime
 from ConfigParser import ConfigParser
 
 class TweetStreamListener(tweepy.StreamListener):
-
+    """
+    Listener for streaming tweets.
+    """
     def __init__(self, tweet_handler):
+        """
+        Args:
+            tweet_handler: handler for tweets
+        Returns:
+            None
+        """
         tweepy.StreamListener.__init__(self)
         self.tweet_handler = tweet_handler
         self.TIMEZONE_OFFSET = datetime.utcnow() - datetime.now()
 
     def on_status(self, status):
+        """
+        Callback when a new status arrived.
+        Can be used for retrieving tweets
+        """
         try:
             coords = status.coordinates["coordinates"]
             if coords is not None:
@@ -54,7 +66,9 @@ class TweetStreamListener(tweepy.StreamListener):
 
 
 class TweetStreamer:
-
+    """
+    Controller for tweets streaming
+    """
     def __init__(self):
         self.stream = None
         self.tweet_handler = None
@@ -63,6 +77,7 @@ class TweetStreamer:
         self.tweet_handler = handler
 
     def start_stream(self):
+        """Start tweets streaming"""
         print '[%s] starting stream...' % (self.__class__.__name__)
         consumer_key, consumer_secret, access_token, access_token_secret = self._read_config('setup.cfg')
 
@@ -76,12 +91,20 @@ class TweetStreamer:
         self.stream.filter(locations=[-180, -90, 180, 90])
 
     def stop_stream(self):
+        """Stop streaming tweets"""
         print '[%s] stopping stream...' % (self.__class__.__name__)
         if tweet_handler is not None:
             self.tweet_handler.save_tweets()
         self.stream.disconnect()
 
     def _read_config(self, config_file):
+        """
+        Read from setup configuration file to set up twitter streaming.
+        Args:
+            config_file: the configuration file name
+        Returns:
+            A tuple containing the credentials for setting up tweets streaming.
+        """
         config = ConfigParser()
         config.read(config_file)
 

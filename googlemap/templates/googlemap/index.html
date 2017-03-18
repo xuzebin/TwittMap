@@ -350,7 +350,6 @@
                   position: latLng,
                   map: map,
                   draggable: false,
-                  // animation: google.maps.Animation.DROP,
                 });
                 
                 attachMessage(marker, tweet);
@@ -434,7 +433,6 @@
                   position: latLng,
                   map: map,
                   draggable: false,
-                  // animation: google.maps.Animation.DROP,
                 });
                 
                 attachMessage(marker, tweet);
@@ -476,10 +474,12 @@
           
           var infowindow = new google.maps.InfoWindow({
             content: contentStr,
-            // maxWidth: 200
           });
           marker.addListener('click', function() {
-            infowindow.open(marker.get('map'), marker);
+            infowindow.open(marker.get('map'), this);
+            this.get('map').addListener('click', function() {
+              infowindow.close();
+            });
           });
       }
       function reset(map, markerCluster, interval, maxtweet) {

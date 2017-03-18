@@ -3,15 +3,15 @@ import os
 import sys
 import threading
 
-from twitter.tweet_streamer import TweetStreamer
-from twitter.tweet_handler import TweetHandler
-from elasticsearch.elasticsearch_wrapper import ElasticsearchWrapper
+# from twitter.tweet_streamer import TweetStreamer
+# from twitter.tweet_handler import TweetHandler
+# from elasticsearch.elasticsearch_wrapper import ElasticsearchWrapper
 
-def start_streaming():
-    es = ElasticsearchWrapper()
-    streamer = TweetStreamer()
-    streamer.set_handler(TweetHandler(es, collect_freq=5))
-    streamer.start_stream()
+# def start_streaming():
+#     es = ElasticsearchWrapper()
+#     streamer = TweetStreamer()
+#     streamer.set_handler(TweetHandler(es, collect_freq=5))
+#     streamer.start_stream()
 
 if __name__ == "__main__":
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "twittmap.settings")
@@ -33,9 +33,9 @@ if __name__ == "__main__":
     """
     Run a separate thread for tweets streaming and uploading to elasticsearch
     """
-    t = threading.Thread(target=start_streaming)
-    t.setDaemon(True)
-    t.start()
+#     t = threading.Thread(target=start_streaming)
+#     t.setDaemon(True)
+#     t.start()
 
     execute_from_command_line(sys.argv)
     

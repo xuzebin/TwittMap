@@ -27,7 +27,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     'twittmap-env.f2xpr2cnnc.us-east-1.elasticbeanstalk.com',
-    '127.0.0.1'
+    '127.0.0.1',
+    'localhost',
 ]
 
 

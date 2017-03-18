@@ -5,8 +5,25 @@ import time
 import json
 
 from elasticsearch.elasticsearch_wrapper import ElasticsearchWrapper
+from twitter.tweet_streamer import TweetStreamer
+from twitter.tweet_handler import TweetHandler
+import threading
 
 es = ElasticsearchWrapper()
+
+def start_streaming():
+    es = ElasticsearchWrapper()
+    streamer = TweetStreamer()
+    streamer.set_handler(TweetHandler(es, collect_freq=5))
+    streamer.start_stream()
+
+"""
+Run a separate thread for tweets streaming and uploading to elasticsearch
+"""
+t = threading.Thread(target=start_streaming)
+t.setDaemon(True)
+t.start()
+
 
 def index(request):
     """

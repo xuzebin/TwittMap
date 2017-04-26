@@ -40,7 +40,7 @@ class ElasticsearchWrapper:
                 }
             }
         }
-        response = requests.put(self.address, data=json.dumps(data))
+        response = requests.post(self.address, data=json.dumps(data))
         return response.text
 
     def upload(self, data):

@@ -3,9 +3,12 @@ Show real-time tweets on Google map.
 
 ## Features
 - Real-time tweets streaming
+![](https://s3.amazonaws.com/github-resource/TweetMap/tweets_streaming.png)
 - Elasticsearch
-    - Keyword-based search.
-    - Geolocation-based search: Search tweets within a distance.
+    - Keyword-based search
+    ![](https://s3.amazonaws.com/github-resource/TweetMap/keyword_search.png)
+    - Geolocation-based search: Search tweets within a distance
+    ![](https://s3.amazonaws.com/github-resource/TweetMap/geolocation_search.png)
 
 ## APIs & Frameworks
 - Twitter Streaming APIs
